@@ -62,4 +62,21 @@
 /drush.phar
 /drush
 /drupal.phar
-/drupal
+/drupal  
+
+# ===============================
+# Ignore local databases (cada integrante)
+# ===============================
+# Carpetas comunes de BD
+/database/
+/databases/
+/db/
+
+# Archivos de bases de datos locales
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+*.bak
+*.dump
+*.log
