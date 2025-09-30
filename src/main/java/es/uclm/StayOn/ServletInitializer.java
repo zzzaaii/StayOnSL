@@ -9,7 +9,7 @@ public class ServletInitializer extends SpringBootServletInitializer {
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
 		return application.sources(StayOnApplication.class);
 		
-		//compruebo que funciona
+		//compruebo que funciona x2
 	}
 
 }
