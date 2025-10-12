@@ -1,4 +1,5 @@
-package es.uclm.StayOn;
+package es.uclm.library.StayOn;
+
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
