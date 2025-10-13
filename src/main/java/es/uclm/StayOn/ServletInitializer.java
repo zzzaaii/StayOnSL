@@ -1,4 +1,4 @@
-package es.uclm.library.StayOn;
+package es.uclm.StayOn;
 
 
 import org.springframework.boot.builder.SpringApplicationBuilder;

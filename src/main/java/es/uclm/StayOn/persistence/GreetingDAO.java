@@ -1,11 +1,11 @@
-package es.uclm.library.persistence;
+package es.uclm.StayOn.persistence;
 
 
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import es.uclm.library.StayOn.entity.Greeting;
+import es.uclm.StayOn.entity.Greeting;
 @Repository
 public interface GreetingDAO extends JpaRepository<Greeting, Long> {
 /*

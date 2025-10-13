@@ -1,4 +1,4 @@
-package es.uclm.library.StayOn.entity;
+package es.uclm.StayOn.entity;
 
 
 import jakarta.persistence.Column;

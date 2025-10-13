@@ -1,4 +1,4 @@
-package es.uclm.library.StayOn.controller;
+package es.uclm.StayOn.controller;
 
 
 
@@ -7,8 +7,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import es.uclm.library.StayOn.entity.Greeting;
-import es.uclm.library.persistence.GreetingDAO;
+import es.uclm.StayOn.entity.Greeting;
+import es.uclm.StayOn.persistence.GreetingDAO;
 
 import org.springframework.web.bind.annotation.ModelAttribute;
 
