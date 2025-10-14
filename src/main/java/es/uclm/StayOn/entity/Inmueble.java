@@ -1,5 +1,7 @@
 package es.uclm.StayOn.entity;
 
+import java.util.Collection;
+
 public class Inmueble {
 
 	Propietario propietario;
