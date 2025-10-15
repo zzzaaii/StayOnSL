@@ -1,5 +1,10 @@
 package es.uclm.StayOn.entity;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 
-public class Inquilino {
-	
+@Entity
+@DiscriminatorValue("INQUILINO")
+public class Inquilino  extends Usuario {
+	//coleccion de reservas 
+	//atributos y relaciones específicas de inquilino
 }
