@@ -7,8 +7,8 @@
 			"name": "database",
 			"save-password": true,
 			"configuration": {
-				"database": "C:\\Users\\zaida\\git\\StayOnSL\\database",
-				"url": "jdbc:derby:C:\\Users\\zaida\\git\\StayOnSL\\database",
+				"database": "C:\\Users\\USUARIO\\Documents\\Universidad\\tercero\\primer cuatri\\ingenieria del software 2\\Practicas\\StayOnSL\\database",
+				"url": "jdbc:derby:C:\\Users\\USUARIO\\Documents\\Universidad\\tercero\\primer cuatri\\ingenieria del software 2\\Practicas\\StayOnSL\\database",
 				"configurationType": "MANUAL",
 				"type": "dev",
 				"closeIdleConnection": true,

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - StayOn</title>
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .login-container {
+            background-color: rgba(255,255,255,0.95);
+            padding: 50px 40px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            width: 400px;
+            text-align: center;
+        }
+
+        .login-container h2 {
+            color: #1e90ff;
+            margin-bottom: 20px;
+        }
+
+        .login-container p {
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .btn-submit {
+            background-color: #1e90ff;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .btn-submit:hover {
+            background-color: #104e8b;
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            background-color: #ffcccc;
+            color: #990000;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .login-footer {
+            margin-top: 20px;
+        }
+
+        .login-footer a {
+            color: #1e90ff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Inicia sesión en StayOn</h2>
+        <p>Introduce tu email y contraseña para continuar.</p>
+
+        <!-- Mensaje de error -->
+        <div th:if="${error}" class="error-message">
+            <p th:text="${error}"></p>
+        </div>
+
+        <form th:action="@{/login}" method="post">
+            <div class="input-group">
+                <label for="login">Email:</label>
+                <input type="email" id="login" name="login" required>
+            </div>
+            <div class="input-group">
+                <label for="pass">Contraseña:</label>
+                <input type="password" id="pass" name="pass" required>
+            </div>
+            <button type="submit" class="btn-submit">Iniciar sesión</button>
+        </form>
+
+        <div class="login-footer">
+            <p>¿No tienes cuenta? <a th:href="@{/registro}">Regístrate aquí</a></p>
+        </div>
+    </div>
+</body>
+</html>
+

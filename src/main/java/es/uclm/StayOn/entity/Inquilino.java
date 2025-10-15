@@ -1,10 +1,15 @@
 package es.uclm.StayOn.entity;
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
+
+import jakarta.persistence.*;
+import java.util.List;
 
 @Entity
 @DiscriminatorValue("INQUILINO")
-public class Inquilino  extends Usuario {
-	//coleccion de reservas 
-	//atributos y relaciones específicas de inquilino
+public class Inquilino extends Usuario {
+
+    @OneToMany(mappedBy = "inquilino")
+    private List<Reserva> reservas;
+
+    public List<Reserva> getReservas() { return reservas; }
+    public void setReservas(List<Reserva> reservas) { this.reservas = reservas; }
 }
