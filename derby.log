@@ -1,11 +1,11 @@
 ----------------------------------------------------------------
-Wed Oct 15 22:49:19 CEST 2025:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.16.1.1 - (1901046): instance a816c00e-0199-e9a2-6801-000002b28e58 
-on database directory C:\Users\USUARIO\Documents\Universidad\tercero\primer cuatri\ingenieria del software 2\Practicas\StayOnSL\database with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@33909752 
-Loaded from file:/C:/Users/USUARIO/.m2/repository/org/apache/derby/derby/10.16.1.1/derby-10.16.1.1.jar
+Fri Oct 17 18:22:15 CEST 2025:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.16.1.1 - (1901046): instance a816c00e-0199-f2fa-9f20-0000012cf270 
+on database directory C:\Users\zaida\git\StayOnSL\database with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@33909752 
+Loaded from file:/C:/Users/zaida/.m2/repository/org/apache/derby/derby/10.16.1.1/derby-10.16.1.1.jar
 java.vendor=Oracle Corporation
-java.runtime.version=21.0.7+8-LTS-245
-user.dir=C:\Users\USUARIO\Documents\Universidad\tercero\primer cuatri\ingenieria del software 2\Practicas\StayOnSL
+java.runtime.version=21.0.8+12-LTS-250
+user.dir=C:\Users\zaida\git\StayOnSL
 os.name=Windows 11
 os.arch=amd64
 os.version=10.0

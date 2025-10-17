@@ -21,7 +21,7 @@ public class GestorInmuebles {
 
     @GetMapping
     public String listarInmuebles(Model model, @SessionAttribute("usuario") Propietario propietario) {
-        List<Inmueble> inmuebles = inmuebleDAO.findByPropietario(propietario);
+       List<Inmueble> inmuebles = inmuebleDAO.findByPropietario(propietario);
         model.addAttribute("inmuebles", inmuebles);
         return "gestionInmuebles";
     }

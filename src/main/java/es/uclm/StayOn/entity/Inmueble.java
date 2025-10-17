@@ -8,12 +8,16 @@ public class Inmueble {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column
+    private String tipo;
+    @Column
+    private String descripcion;
 
     @Column(nullable = false)
     private String direccion;
 
     @Column(nullable = false)
-    private double precioPorNoche = 0.0; 
+    private double precioNoche = 0.0; 
 
     @ManyToOne
     @JoinColumn(name = "propietario_id", nullable = false)
@@ -37,18 +41,42 @@ public class Inmueble {
     }
 
     public double getPrecioPorNoche() { 
-        return precioPorNoche; 
+        return precioNoche; 
     }
 
     public void setPrecioPorNoche(double precioPorNoche) { 
-        this.precioPorNoche = precioPorNoche; 
+        this.precioNoche = precioPorNoche; 
     }
 
     public Propietario getPropietario() { 
         return propietario; 
     }
 
-    public void setPropietario(Propietario propietario) { 
+    public String getTipo() {
+		return tipo;
+	}
+
+	public void setTipo(String tipo) {
+		this.tipo = tipo;
+	}
+
+	public String getDescripcion() {
+		return descripcion;
+	}
+
+	public void setDescripcion(String descripcion) {
+		this.descripcion = descripcion;
+	}
+
+	public double getPrecioNoche() {
+		return precioNoche;
+	}
+
+	public void setPrecioNoche(double precioNoche) {
+		this.precioNoche = precioNoche;
+	}
+
+	public void setPropietario(Propietario propietario) { 
         this.propietario = propietario; 
     }
 }

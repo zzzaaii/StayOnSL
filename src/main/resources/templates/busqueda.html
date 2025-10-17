@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Buscar Alojamiento - StayOn</title>
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+</head>
+<body>
+    <div class="main-container">
+        <header class="header">
+            <h1>Encuentra tu próximo destino</h1>
+            <p>Explora alojamientos únicos en cualquier parte del mundo.</p>
+        </header>
+
+        <div class="search-form-container">
+            <form th:action="@{/buscar}" method="post" class="search-form">
+                <input type="text" name="destino" placeholder="Introduce un destino (ej. Madrid, Barcelona...)" class="search-input">
+                <button type="submit" class="btn-search">Buscar</button>
+            </form>
+        </div>
+
+        <div class="results-container">
+            <h2>Resultados</h2>
+
+            <div th:if="${busquedaRealizada and #lists.isEmpty(resultados)}" class="no-results">
+                <p>No se encontraron alojamientos para tu búsqueda. ¡Intenta con otro destino!</p>
+            </div>
+
+            <div class="property-grid">
+                <div th:each="inmueble : ${resultados}" class="property-card">
+                    <div class="property-image">
+                        <img th:src="@{https://via.placeholder.com/400x250.png?text=Alojamiento}" alt="Foto del inmueble">
+                    </div>
+                    <div class="property-info">
+                        <h3 th:text="${inmueble.tipo} + ' en ' + ${inmueble.direccion}">Tipo y Dirección</h3>
+                        <p class="property-description" th:text="${inmueble.descripcion}">Descripción del inmueble...</p>
+                        <p class="property-price" th:text="${#numbers.formatDecimal(inmueble.precioNoche, 1, 'POINT', 2, 'COMMA')} + ' €/noche'">Precio</p>
+                        <div class="property-actions">
+                            <a href="#" class="btn-action btn-reserve">Reservar</a>
+                            <a href="#" class="btn-action btn-wishlist">❤️ Añadir a deseos</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
