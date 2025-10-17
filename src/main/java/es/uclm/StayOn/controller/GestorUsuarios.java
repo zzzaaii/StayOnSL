@@ -5,12 +5,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpSession;
-
 import es.uclm.StayOn.entity.Inquilino;
 import es.uclm.StayOn.entity.Propietario;
 import es.uclm.StayOn.entity.Usuario;
 import es.uclm.StayOn.persistence.UsuarioDAO;
+
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class GestorUsuarios {
@@ -18,58 +18,66 @@ public class GestorUsuarios {
     @Autowired
     private UsuarioDAO usuarioDAO;
 
-    // Muestra el formulario de registro
+    // 🔹 Mostrar formulario de registro
     @GetMapping("/registro")
     public String mostrarFormularioRegistro(Model model) {
-        model.addAttribute("usuario", new Propietario()); // Por defecto
         return "registro";
     }
 
-    // Procesa registro
+    // 🔹 Procesar registro (ya no usamos @ModelAttribute Usuario)
     @PostMapping("/registro")
-    public String registrarUsuario(@ModelAttribute Usuario usuario, @RequestParam String rol, Model model) {
+    public String registrarUsuario(@RequestParam String rol,
+                                   @RequestParam String login,
+                                   @RequestParam String pass,
+                                   @RequestParam String nombre,
+                                   @RequestParam String apellidos,
+                                   @RequestParam String direccion,
+                                   Model model) {
+
+        // Verificar si ya existe el usuario
+        if (usuarioDAO.findByLogin(login) != null) {
+            model.addAttribute("error", "El email de usuario ya está registrado.");
+            return "registro";
+        }
+
         Usuario nuevoUsuario;
 
-        if ("PROPIETARIO".equals(rol)) {
+        // Crear tipo según el rol
+        if ("PROPIETARIO".equalsIgnoreCase(rol)) {
             nuevoUsuario = new Propietario();
         } else {
             nuevoUsuario = new Inquilino();
         }
 
-        nuevoUsuario.setLogin(usuario.getLogin());
-        nuevoUsuario.setPass(usuario.getPass());
-        nuevoUsuario.setNombre(usuario.getNombre());
-        nuevoUsuario.setApellidos(usuario.getApellidos());
-        nuevoUsuario.setDireccion(usuario.getDireccion());
+        nuevoUsuario.setLogin(login);
+        nuevoUsuario.setPass(pass);
+        nuevoUsuario.setNombre(nombre);
+        nuevoUsuario.setApellidos(apellidos);
+        nuevoUsuario.setDireccion(direccion);
 
-        try {
-            usuarioDAO.save(nuevoUsuario);
-        } catch (Exception e) {
-            model.addAttribute("error", "El email de usuario ya está registrado.");
-            model.addAttribute("usuario", usuario);
-            return "registro";
-        }
+        usuarioDAO.save(nuevoUsuario);
 
         return "redirect:/registroExitoso";
     }
 
+    // 🔹 Página de éxito
     @GetMapping("/registroExitoso")
     public String registroExitoso() {
         return "registroExitoso";
     }
 
-    // Muestra formulario login
+    // 🔹 Mostrar login
     @GetMapping("/login")
-    public String mostrarLogin(Model model) {
+    public String mostrarLogin() {
         return "login";
     }
 
-    // Procesa login
+    // 🔹 Procesar login
     @PostMapping("/login")
     public String login(@RequestParam String login,
                         @RequestParam String pass,
-                        Model model,
-                        HttpSession session) {
+                        HttpSession session,
+                        Model model) {
 
         Usuario usuario = usuarioDAO.findByLogin(login);
 
@@ -83,10 +91,8 @@ public class GestorUsuarios {
             return "login";
         }
 
-        // Guardamos el usuario en sesión
         session.setAttribute("usuario", usuario);
 
-        // Redirigimos según tipo
         if (usuario instanceof Propietario) {
             return "redirect:/inicioPropietario";
         } else {
@@ -94,10 +100,10 @@ public class GestorUsuarios {
         }
     }
 
-    // Logout
+    // 🔹 Cerrar sesión
     @GetMapping("/logout")
     public String logout(HttpSession session) {
-        session.invalidate(); // Limpiamos sesión
+        session.invalidate();
         return "redirect:/inicio";
     }
 }
