@@ -8,75 +8,45 @@ public class Inmueble {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column
+
+    @Column(nullable = false)
     private String tipo;
-    @Column
+
+    @Column(length = 1000)
     private String descripcion;
 
     @Column(nullable = false)
     private String direccion;
 
     @Column(nullable = false)
-    private double precioNoche = 0.0; 
+    private String ciudad;
+
+    @Column( nullable = false)
+    private Double precioPorNoche; // Cambiado a Double para permitir null y conversiones desde formulario
 
     @ManyToOne
     @JoinColumn(name = "propietario_id", nullable = false)
     private Propietario propietario;
 
     // Getters y Setters
-    public Long getId() { 
-        return id; 
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) { 
-        this.id = id; 
-    }
+    public String getTipo() { return tipo; }
+    public void setTipo(String tipo) { this.tipo = tipo; }
 
-    public String getDireccion() { 
-        return direccion; 
-    }
+    public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
-    public void setDireccion(String direccion) { 
-        this.direccion = direccion; 
-    }
+    public String getDireccion() { return direccion; }
+    public void setDireccion(String direccion) { this.direccion = direccion; }
 
-    public double getPrecioPorNoche() { 
-        return precioNoche; 
-    }
+    public String getCiudad() { return ciudad; }
+    public void setCiudad(String ciudad) { this.ciudad = ciudad; }
 
-    public void setPrecioPorNoche(double precioPorNoche) { 
-        this.precioNoche = precioPorNoche; 
-    }
+    public Double getPrecioPorNoche() { return precioPorNoche; }
+    public void setPrecioPorNoche(Double precioPorNoche) { this.precioPorNoche = precioPorNoche; }
 
-    public Propietario getPropietario() { 
-        return propietario; 
-    }
-
-    public String getTipo() {
-		return tipo;
-	}
-
-	public void setTipo(String tipo) {
-		this.tipo = tipo;
-	}
-
-	public String getDescripcion() {
-		return descripcion;
-	}
-
-	public void setDescripcion(String descripcion) {
-		this.descripcion = descripcion;
-	}
-
-	public double getPrecioNoche() {
-		return precioNoche;
-	}
-
-	public void setPrecioNoche(double precioNoche) {
-		this.precioNoche = precioNoche;
-	}
-
-	public void setPropietario(Propietario propietario) { 
-        this.propietario = propietario; 
-    }
+    public Propietario getPropietario() { return propietario; }
+    public void setPropietario(Propietario propietario) { this.propietario = propietario; }
 }

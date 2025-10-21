@@ -68,12 +68,17 @@
             margin-bottom: 0.3rem;
         }
 
-        input[type="text"], input[type="number"] {
+        input[type="text"], input[type="number"], textarea, select {
             padding: 0.8rem;
             border: 1px solid #ccc;
             border-radius: 8px;
             width: 100%;
             font-size: 1rem;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
         }
 
         button {
@@ -101,16 +106,42 @@
 </header>
 
 <main>
-    <h2>Nuevo Inmueble</h2>
+    <h2 th:text="${inmueble.id != null} ? 'Editar Inmueble' : 'Nuevo Inmueble'"></h2>
+
     <form th:action="@{/gestionInmuebles/guardar}" th:object="${inmueble}" method="post">
+        <!-- 🔹 IMPORTANTE: ID para actualización -->
+        <input type="hidden" th:field="*{id}">
+
+        <div>
+            <label>Tipo de inmueble:</label>
+            <select th:field="*{tipo}" required>
+                <option value="Vivienda">Vivienda</option>
+                <option value="Habitación">Habitación</option>
+                <option value="Apartamento">Apartamento</option>
+                <option value="Casa rural">Casa rural</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Descripción:</label>
+            <textarea th:field="*{descripcion}" placeholder="Describe brevemente el alojamiento..."></textarea>
+        </div>
+
         <div>
             <label>Dirección:</label>
             <input type="text" th:field="*{direccion}" required>
         </div>
+
         <div>
-            <label>Precio por Noche:</label>
-            <input type="number" th:field="*{precioPorNoche}" step="0.01" required>
+            <label>Ciudad:</label>
+            <input type="text" th:field="*{ciudad}" placeholder="Ejemplo: Madrid" required>
         </div>
+
+        <div>
+            <label>Precio por Noche (€):</label>
+            <input type="number" th:field="*{precioPorNoche}" step="0.01" min="0" required>
+        </div>
+
         <button type="submit" class="btn-submit">💾 Guardar</button>
     </form>
 </main>

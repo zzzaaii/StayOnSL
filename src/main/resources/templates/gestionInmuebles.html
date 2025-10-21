@@ -18,8 +18,8 @@
             background-color: #3f72af;
             color: white;
             width: 100%;
-            padding: 1.5rem;
             text-align: center;
+            padding: 1.5rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.15);
         }
 
@@ -126,14 +126,16 @@
         <thead>
             <tr>
                 <th>Dirección</th>
-                <th>Precio por Noche</th>
+                <th>Ciudad</th>
+                <th>Precio por Noche (€)</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             <tr th:each="inmueble : ${inmuebles}">
                 <td th:text="${inmueble.direccion}"></td>
-                <td th:text="${inmueble.precioPorNoche}"></td>
+                <td th:text="${inmueble.ciudad}"></td>
+				<td th:text="${#numbers.formatDecimal(inmueble.precioPorNoche, 1, 'POINT', 2, 'POINT')}"></td>
                 <td>
                     <a th:href="@{'/gestionInmuebles/editar/' + ${inmueble.id}}" class="btn-action">Editar</a> |
                     <a th:href="@{'/gestionInmuebles/eliminar/' + ${inmueble.id}}" class="btn-action">Eliminar</a>
@@ -144,3 +146,4 @@
 </main>
 </body>
 </html>
+

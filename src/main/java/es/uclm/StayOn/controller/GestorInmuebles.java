@@ -34,17 +34,27 @@ public class GestorInmuebles {
 
     @PostMapping("/guardar")
     public String guardarInmueble(@ModelAttribute Inmueble inmueble, @SessionAttribute("usuario") Propietario propietario) {
+
+        // Evitar valores nulos
+        if (inmueble.getTipo() == null || inmueble.getTipo().isBlank()) inmueble.setTipo("Vivienda");
+        if (inmueble.getDireccion() == null || inmueble.getDireccion().isBlank()) inmueble.setDireccion("Sin dirección");
+        if (inmueble.getCiudad() == null || inmueble.getCiudad().isBlank()) inmueble.setCiudad("Sin ciudad");
+        if (inmueble.getPrecioPorNoche() == null) inmueble.setPrecioPorNoche(0.1);
+
         inmueble.setPropietario(propietario);
         inmuebleDAO.save(inmueble);
         return "redirect:/gestionInmuebles";
     }
 
+
+
     @GetMapping("/editar/{id}")
     public String editarInmueble(@PathVariable Long id, Model model, @SessionAttribute("usuario") Propietario propietario) {
         Optional<Inmueble> optionalInmueble = inmuebleDAO.findById(id);
-        if (optionalInmueble.isEmpty() || !optionalInmueble.get().getPropietario().equals(propietario)) {
-            return "redirect:/gestionInmuebles"; // Evita que un propietario edite inmuebles ajenos
+        if (optionalInmueble.isEmpty() || !optionalInmueble.get().getPropietario().getId().equals(propietario.getId())) {
+            return "redirect:/gestionInmuebles";
         }
+
         model.addAttribute("inmueble", optionalInmueble.get());
         return "formInmueble";
     }
@@ -52,9 +62,15 @@ public class GestorInmuebles {
     @GetMapping("/eliminar/{id}")
     public String eliminarInmueble(@PathVariable Long id, @SessionAttribute("usuario") Propietario propietario) {
         Optional<Inmueble> optionalInmueble = inmuebleDAO.findById(id);
-        if (optionalInmueble.isPresent() && optionalInmueble.get().getPropietario().equals(propietario)) {
-            inmuebleDAO.deleteById(id);
+
+        // Si no existe o el propietario no coincide, redirigimos
+        if (optionalInmueble.isEmpty() || !optionalInmueble.get().getPropietario().getId().equals(propietario.getId())) {
+            return "redirect:/gestionInmuebles";
         }
+
+        // Borrar inmueble existente
+        inmuebleDAO.delete(optionalInmueble.get());
         return "redirect:/gestionInmuebles";
     }
+
 }
