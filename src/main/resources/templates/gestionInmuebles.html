@@ -137,8 +137,9 @@
                 <td th:text="${inmueble.ciudad}"></td>
 				<td th:text="${#numbers.formatDecimal(inmueble.precioPorNoche, 1, 'POINT', 2, 'POINT')}"></td>
                 <td>
-                    <a th:href="@{'/gestionInmuebles/editar/' + ${inmueble.id}}" class="btn-action">Editar</a> |
-                    <a th:href="@{'/gestionInmuebles/eliminar/' + ${inmueble.id}}" class="btn-action">Eliminar</a>
+					<a th:href="@{/gestionInmuebles/editar/{id}(id=${inmueble.id})}" class="btn-action">Editar</a>
+					<a th:href="@{/gestionInmuebles/eliminar/{id}(id=${inmueble.id})}" class="btn-action">Eliminar</a>
+
                 </td>
             </tr>
         </tbody>

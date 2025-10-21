@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Formulario Inmueble - StayOn</title>
     <link rel="stylesheet" th:href="@{/css/estilos.css}">
+
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
@@ -97,10 +98,11 @@
             background-color: #2e5c8a;
         }
     </style>
+
 </head>
 <body>
 <header>
-    <h1>🏠 StayOn</h1>
+    <h1> StayOn</h1>
     <p>Formulario de Inmueble</p>
     <a th:href="@{/gestionInmuebles}">Volver a gestión</a>
 </header>
@@ -109,8 +111,8 @@
     <h2 th:text="${inmueble.id != null} ? 'Editar Inmueble' : 'Nuevo Inmueble'"></h2>
 
     <form th:action="@{/gestionInmuebles/guardar}" th:object="${inmueble}" method="post">
-        <!-- 🔹 IMPORTANTE: ID para actualización -->
-        <input type="hidden" th:field="*{id}">
+        <!-- ID oculto para editar -->
+        <input type="hidden" th:field="*{id}" />
 
         <div>
             <label>Tipo de inmueble:</label>
@@ -123,27 +125,28 @@
         </div>
 
         <div>
-            <label>Descripción:</label>
-            <textarea th:field="*{descripcion}" placeholder="Describe brevemente el alojamiento..."></textarea>
-        </div>
-
-        <div>
             <label>Dirección:</label>
-            <input type="text" th:field="*{direccion}" required>
+            <input type="text" th:field="*{direccion}" required/>
         </div>
 
         <div>
             <label>Ciudad:</label>
-            <input type="text" th:field="*{ciudad}" placeholder="Ejemplo: Madrid" required>
+            <input type="text" th:field="*{ciudad}" placeholder="Ejemplo: Madrid" required/>
         </div>
 
         <div>
             <label>Precio por Noche (€):</label>
-            <input type="number" th:field="*{precioPorNoche}" step="0.01" min="0" required>
+            <input type="number" th:field="*{precioPorNoche}" step="0.01" min="0" required/>
         </div>
 
-        <button type="submit" class="btn-submit">💾 Guardar</button>
+        <div>
+            <label>Descripción:</label>
+            <textarea th:field="*{descripcion}" placeholder="Describe brevemente el alojamiento..."></textarea>
+        </div>
+
+        <button type="submit"> Guardar</button>
     </form>
 </main>
 </body>
 </html>
+>

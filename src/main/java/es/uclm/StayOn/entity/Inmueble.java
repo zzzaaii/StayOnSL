@@ -21,8 +21,8 @@ public class Inmueble {
     @Column(nullable = false)
     private String ciudad;
 
-    @Column( nullable = false)
-    private Double precioPorNoche; // Cambiado a Double para permitir null y conversiones desde formulario
+    @Column(nullable = false)
+    private Double precioPorNoche = 0.0; // valor por defecto para evitar null
 
     @ManyToOne
     @JoinColumn(name = "propietario_id", nullable = false)
@@ -50,3 +50,4 @@ public class Inmueble {
     public Propietario getPropietario() { return propietario; }
     public void setPropietario(Propietario propietario) { this.propietario = propietario; }
 }
+

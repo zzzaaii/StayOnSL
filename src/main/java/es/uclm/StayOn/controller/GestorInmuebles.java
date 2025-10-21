@@ -21,7 +21,7 @@ public class GestorInmuebles {
 
     @GetMapping
     public String listarInmuebles(Model model, @SessionAttribute("usuario") Propietario propietario) {
-       List<Inmueble> inmuebles = inmuebleDAO.findByPropietario(propietario);
+        List<Inmueble> inmuebles = inmuebleDAO.findByPropietario(propietario);
         model.addAttribute("inmuebles", inmuebles);
         return "gestionInmuebles";
     }
@@ -29,7 +29,7 @@ public class GestorInmuebles {
     @GetMapping("/nuevo")
     public String nuevoInmueble(Model model) {
         model.addAttribute("inmueble", new Inmueble());
-        return "formInmueble";
+        return "forminmueble";
     }
 
     @PostMapping("/guardar")
@@ -46,31 +46,28 @@ public class GestorInmuebles {
         return "redirect:/gestionInmuebles";
     }
 
-
-
     @GetMapping("/editar/{id}")
     public String editarInmueble(@PathVariable Long id, Model model, @SessionAttribute("usuario") Propietario propietario) {
         Optional<Inmueble> optionalInmueble = inmuebleDAO.findById(id);
+
         if (optionalInmueble.isEmpty() || !optionalInmueble.get().getPropietario().getId().equals(propietario.getId())) {
+            System.out.println("Redirigiendo: propietario no coincide o inmueble vacío");
             return "redirect:/gestionInmuebles";
         }
 
         model.addAttribute("inmueble", optionalInmueble.get());
-        return "formInmueble";
+        return "forminmueble";
     }
 
     @GetMapping("/eliminar/{id}")
     public String eliminarInmueble(@PathVariable Long id, @SessionAttribute("usuario") Propietario propietario) {
         Optional<Inmueble> optionalInmueble = inmuebleDAO.findById(id);
 
-        // Si no existe o el propietario no coincide, redirigimos
-        if (optionalInmueble.isEmpty() || !optionalInmueble.get().getPropietario().getId().equals(propietario.getId())) {
-            return "redirect:/gestionInmuebles";
+        if (optionalInmueble.isPresent() && optionalInmueble.get().getPropietario().getId().equals(propietario.getId())) {
+            inmuebleDAO.delete(optionalInmueble.get());
         }
 
-        // Borrar inmueble existente
-        inmuebleDAO.delete(optionalInmueble.get());
         return "redirect:/gestionInmuebles";
     }
-
 }
+
