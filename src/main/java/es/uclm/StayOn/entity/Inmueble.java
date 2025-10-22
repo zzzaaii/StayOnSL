@@ -27,10 +27,20 @@ public class Inmueble {
     @ManyToOne
     @JoinColumn(name = "propietario_id", nullable = false)
     private Propietario propietario;
-
+    
+    @OneToOne(cascade = CascadeType.ALL)
+    private Disponibilidad disponibilidad;
     // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+ // Getters y setters correctos
+    public Disponibilidad getDisponibilidad() {
+        return disponibilidad;
+    }
+
+    public void setDisponibilidad(Disponibilidad disponibilidad) {
+        this.disponibilidad = disponibilidad;
+    }
 
     public String getTipo() { return tipo; }
     public void setTipo(String tipo) { this.tipo = tipo; }

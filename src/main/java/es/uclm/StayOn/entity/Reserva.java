@@ -3,6 +3,8 @@ package es.uclm.StayOn.entity;
 import jakarta.persistence.*;
 import java.util.Date;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 @Entity
 public class Reserva {
 
@@ -11,10 +13,12 @@ public class Reserva {
     private Long id;
 
     @Temporal(TemporalType.DATE)
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(nullable = false)
     private Date fechaInicio;
 
     @Temporal(TemporalType.DATE)
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(nullable = false)
     private Date fechaFin;
 
@@ -51,4 +55,30 @@ public class Reserva {
         Date hoy = new Date();
         return hoy.compareTo(fechaInicio) >= 0 && hoy.compareTo(fechaFin) <= 0;
     }
+    @Transient
+    public Double getPrecioTotal() {
+        if (fechaInicio == null || fechaFin == null || inmueble == null || inmueble.getPrecioPorNoche() == null) {
+            return null;
+        }
+
+        java.time.LocalDate inicio;
+        java.time.LocalDate fin;
+
+        // ✅ Detectamos el tipo real de fecha para evitar el error
+        if (fechaInicio instanceof java.sql.Date && fechaFin instanceof java.sql.Date) {
+            inicio = ((java.sql.Date) fechaInicio).toLocalDate();
+            fin = ((java.sql.Date) fechaFin).toLocalDate();
+        } else {
+            inicio = fechaInicio.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+            fin = fechaFin.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+        }
+
+        long noches = java.time.temporal.ChronoUnit.DAYS.between(inicio, fin);
+        if (noches < 1) noches = 1;
+
+        return inmueble.getPrecioPorNoche() * noches;
+    }
+
+
+
 }

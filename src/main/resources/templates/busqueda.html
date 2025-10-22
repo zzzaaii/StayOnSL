@@ -1,48 +1,256 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Buscar Alojamiento - StayOn</title>
     <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- BANNER SUPERIOR --- */
+        header {
+            background-color: #3f72af;
+            color: white;
+            text-align: center;
+            padding: 2rem 4rem;
+            width: 60%;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin-top: 3rem;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            margin: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        main {
+            width: 85%;
+            max-width: 1100px;
+            margin-top: 2.5rem;
+            background-color: white;
+            border-radius: 15px;
+            padding: 2rem 3rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- FORMULARIO --- */
+        form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.2rem 1.5rem;
+            justify-items: center;
+            align-items: end;
+            width: 100%;
+            max-width: 950px;
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            font-weight: bold;
+            color: #3f72af;
+            margin-bottom: 0.3rem;
+            display: block;
+            text-align: left;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: center;
+            grid-column: span 2;
+        }
+
+        input[type="checkbox"] {
+            transform: scale(1.3);
+            cursor: pointer;
+        }
+
+        button {
+            grid-column: 1 / -1;
+            justify-self: center;
+            background-color: #3f72af;
+            color: white;
+            border: none;
+            padding: 0.9rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2e5c8a;
+        }
+
+        /* --- RESULTADOS --- */
+        .resultados {
+            margin-top: 2rem;
+            width: 100%;
+            max-width: 950px;
+        }
+
+        .resultados h2 {
+            text-align: center;
+            color: #3f72af;
+            margin-bottom: 1.5rem;
+        }
+
+        .property-card {
+            background-color: #f8f9fc;
+            padding: 1.2rem;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            margin-bottom: 1.2rem;
+            transition: transform 0.2s;
+        }
+
+        .property-card:hover {
+            transform: scale(1.01);
+        }
+
+        .property-card h3 {
+            color: #3f72af;
+            margin: 0.4rem 0;
+        }
+
+        .property-card p {
+            margin: 0.3rem 0;
+        }
+
+        .property-price {
+            font-weight: bold;
+            color: #222;
+        }
+
+        .property-actions {
+            margin-top: 0.8rem;
+        }
+
+        .btn-action {
+            text-decoration: none;
+            background-color: #3f72af;
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            margin-right: 0.5rem;
+            transition: 0.3s;
+        }
+
+        .btn-action:hover {
+            background-color: #2e5c8a;
+        }
+
+        .btn-wishlist {
+            background-color: #ff5a5f;
+        }
+
+        .btn-wishlist:hover {
+            background-color: #d94b50;
+        }
+    </style>
 </head>
 <body>
-    <div class="main-container">
-        <header class="header">
-            <h1>Encuentra tu próximo destino</h1>
-            <p>Explora alojamientos únicos en cualquier parte del mundo.</p>
-        </header>
 
-        <div class="search-form-container">
-            <form th:action="@{/buscar}" method="post" class="search-form">
-                <input type="text" name="destino" placeholder="Introduce un destino (ej. Madrid, Barcelona...)" class="search-input">
-                <button type="submit" class="btn-search">Buscar</button>
-            </form>
+<header>
+    <h1>🏠 StayOn - Buscar Alojamiento</h1>
+    <p>Explora los mejores alojamientos disponibles</p>
+</header>
+
+<main>
+    <form th:action="@{/buscar}" method="post">
+        <div>
+            <label>Ciudad o dirección:</label>
+            <input type="text" name="destino" placeholder="Ejemplo: Madrid, Calle Mayor...">
         </div>
 
-        <div class="results-container">
-            <h2>Resultados</h2>
-
-            <div th:if="${busquedaRealizada and #lists.isEmpty(resultados)}" class="no-results">
-                <p>No se encontraron alojamientos para tu búsqueda. ¡Intenta con otro destino!</p>
-            </div>
-
-            <div class="property-grid">
-                <div th:each="inmueble : ${resultados}" class="property-card">
-                    <div class="property-image">
-                        <img th:src="@{https://via.placeholder.com/400x250.png?text=Alojamiento}" alt="Foto del inmueble">
-                    </div>
-                    <div class="property-info">
-                        <h3 th:text="${inmueble.tipo} + ' en ' + ${inmueble.direccion}">Tipo y Dirección</h3>
-                        <p class="property-description" th:text="${inmueble.descripcion}">Descripción del inmueble...</p>
-                        <p class="property-price" th:text="${#numbers.formatDecimal(inmueble.precioNoche, 1, 'POINT', 2, 'COMMA')} + ' €/noche'">Precio</p>
-                        <div class="property-actions">
-                            <a href="#" class="btn-action btn-reserve">Reservar</a>
-                            <a href="#" class="btn-action btn-wishlist">❤️ Añadir a deseos</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div>
+            <label>Tipo:</label>
+            <select name="tipo">
+                <option value="">-- Tipo de inmueble --</option>
+                <option value="Vivienda">Vivienda</option>
+                <option value="Habitación">Habitación</option>
+                <option value="Apartamento">Apartamento</option>
+                <option value="Casa rural">Casa rural</option>
+            </select>
         </div>
-    </div>
+
+        <div>
+            <label>Fecha inicio:</label>
+            <input type="date" name="fechaInicio">
+        </div>
+
+        <div>
+            <label>Fecha fin:</label>
+            <input type="date" name="fechaFin">
+        </div>
+
+        <div>
+            <label>Precio máximo (€ / noche):</label>
+            <input type="number" name="precioMax" step="0.01" min="0">
+        </div>
+
+        <div class="checkbox-container">
+            <label for="directa">Reserva inmediata:</label>
+            <input type="checkbox" name="directa">
+        </div>
+
+        <button type="submit">🔍 Buscar</button>
+    </form>
+
+    <section class="resultados">
+        <h2>Resultados</h2>
+
+        <div th:if="${busquedaRealizada and #lists.isEmpty(resultados)}">
+            <p>No se encontraron alojamientos para tu búsqueda.</p>
+        </div>
+
+        <div th:each="inmueble : ${resultados}" class="property-card">
+            <h3 th:text="${inmueble.tipo} + ' en ' + ${inmueble.ciudad}">Vivienda en Ciudad</h3>
+            <p th:text="${inmueble.descripcion}">Descripción del inmueble...</p>
+            <p class="property-price" th:text="${#numbers.formatDecimal(inmueble.precioPorNoche, 1, 'POINT', 2, 'COMMA')} + ' €/noche'">Precio</p>
+			<div class="property-actions">
+			    <a th:href="@{'/reservar/' + ${inmueble.id}}" class="btn-action">Reservar</a>
+			    <a href="#" class="btn-action btn-wishlist">❤️ Deseos</a>
+			</div>
+
+        </div>
+    </section>
+</main>
+
 </body>
 </html>

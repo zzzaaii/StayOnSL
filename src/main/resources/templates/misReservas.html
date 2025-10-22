@@ -80,7 +80,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 1rem;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
         }
 
         th, td {
@@ -107,6 +107,30 @@
         .btn-action:hover {
             text-decoration: underline;
         }
+
+        /* Botón de pagar */
+        .btn-pay {
+            background-color: #4CAF50;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-pay:hover {
+            background-color: #3e8e41;
+        }
+
+        .btn-disabled {
+            background-color: #ccc;
+            color: #666;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -123,26 +147,40 @@
 
     <table>
         <thead>
-            <tr>
-                <th>Fecha Inicio</th>
-                <th>Fecha Fin</th>
-                <th>Pagado</th>
-                <th>Activa</th>
-                <th>Acciones</th>
-            </tr>
+        <tr>
+            <th>Ciudad</th>
+            <th>Dirección</th>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+            <th>Precio Total (€)</th>
+            <th>Pagado</th>
+            <th>Activa</th>
+            <th>Acciones</th>
+        </tr>
         </thead>
-        <tbody>
-            <tr th:each="reserva : ${reservas}">
-                <td th:text="${#dates.format(reserva.fechaInicio, 'dd/MM/yyyy')}"></td>
-                <td th:text="${#dates.format(reserva.fechaFin, 'dd/MM/yyyy')}"></td>
-                <td th:text="${reserva.pagado ? 'Sí' : 'No'}"></td>
-                <td th:text="${reserva.activa ? 'Sí' : 'No'}"></td>
-                <td>
-                    <a th:href="@{'/misReservas/editar/' + ${reserva.id}}" class="btn-action">Editar</a> |
-                    <a th:href="@{'/misReservas/eliminar/' + ${reserva.id}}" class="btn-action">Eliminar</a>
-                </td>
-            </tr>
-        </tbody>
+
+		<tbody>
+		<tr th:each="reserva : ${reservas}">
+		    <td th:text="${reserva.inmueble.ciudad}">Ciudad</td>
+		    <td th:text="${reserva.inmueble.direccion}">Dirección</td>
+
+		    <td th:text="${#dates.format(reserva.fechaInicio, 'dd/MM/yyyy')}"></td>
+		    <td th:text="${#dates.format(reserva.fechaFin, 'dd/MM/yyyy')}"></td>
+
+		    <td th:text="${#numbers.formatDecimal(reserva.precioTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+
+		    <td th:text="${reserva.pagado ? 'Sí' : 'No'}"></td>
+		    <td th:text="${reserva.activa ? 'Sí' : 'No'}"></td>
+
+		    <td>
+		        <a th:href="@{'/misReservas/editar/' + ${reserva.id}}" class="btn-action">Editar</a> |
+		        <a th:href="@{'/misReservas/eliminar/' + ${reserva.id}}" class="btn-action">Eliminar</a> |
+		        <button th:if="${!reserva.pagado}" class="btn-pay">💳 Pagar</button>
+		        <button th:if="${reserva.pagado}" class="btn-disabled" disabled>Pagado</button>
+		    </td>
+		</tr>
+		</tbody>
+
     </table>
 </main>
 </body>

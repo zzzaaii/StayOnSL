@@ -11,4 +11,5 @@ public interface InmuebleDAO extends JpaRepository<Inmueble, Long> {
     List<Inmueble> findByPropietario(Propietario propietario);
 
 	List<Inmueble> findByDireccionContainingIgnoreCase(String destino);
+	
 }

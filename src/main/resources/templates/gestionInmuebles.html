@@ -139,6 +139,7 @@
                 <td>
 					<a th:href="@{/gestionInmuebles/editar/{id}(id=${inmueble.id})}" class="btn-action">Editar</a>
 					<a th:href="@{/gestionInmuebles/eliminar/{id}(id=${inmueble.id})}" class="btn-action">Eliminar</a>
+					<a th:href="@{'/gestionInmuebles/' + ${inmueble.id} + '/disponibilidades'}" class="btn-action">Disponibilidades</a>
 
                 </td>
             </tr>

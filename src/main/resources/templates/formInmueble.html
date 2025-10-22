@@ -98,8 +98,8 @@
             background-color: #2e5c8a;
         }
     </style>
-
 </head>
+
 <body>
 <header>
     <h1> StayOn</h1>
@@ -144,9 +144,26 @@
             <textarea th:field="*{descripcion}" placeholder="Describe brevemente el alojamiento..."></textarea>
         </div>
 
-        <button type="submit"> Guardar</button>
+        <hr/>
+        <h3>Disponibilidad</h3>
+
+        <div>
+            <label>Fecha Inicio:</label>
+            <input type="date" th:field="*{disponibilidad.fechaInicio}" required/>
+        </div>
+
+        <div>
+            <label>Fecha Fin:</label>
+            <input type="date" th:field="*{disponibilidad.fechaFin}" required/>
+        </div>
+
+        <div>
+            <label>Reserva directa:</label>
+            <input type="checkbox" th:field="*{disponibilidad.directa}" />
+        </div>
+
+        <button type="submit">Guardar</button>
     </form>
 </main>
 </body>
 </html>
->

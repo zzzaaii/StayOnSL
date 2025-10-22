@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Reserva Confirmada</title>
+  <style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background-color: #f5f7fa;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+    .card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem 3rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    h1 { color: #3f72af; }
+    p { font-size: 1.1rem; margin: 0.5rem 0; }
+    .btn {
+        display: inline-block;
+        margin-top: 1.5rem;
+        background-color: #3f72af;
+        color: white;
+        text-decoration: none;
+        padding: 0.8rem 2rem;
+        border-radius: 8px;
+        transition: background 0.3s;
+    }
+    .btn:hover { background-color: #2e5c8a; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>✅ Reserva confirmada</h1>
+  <p><strong>Inmueble:</strong> <span th:text="${inmueble.direccion}"></span></p>
+  <p><strong>Ciudad:</strong> <span th:text="${inmueble.ciudad}"></span></p>
+  <p><strong>Desde:</strong> <span th:text="${#dates.format(reserva.fechaInicio, 'dd/MM/yyyy')}"></span></p>
+  <p><strong>Hasta:</strong> <span th:text="${#dates.format(reserva.fechaFin, 'dd/MM/yyyy')}"></span></p>
+  <p><strong>Total:</strong> <span th:text="${#numbers.formatDecimal(total, 1, 'POINT', 2, 'COMMA')}"></span> €</p>
+  <a th:href="@{/buscarInmuebles}" class="btn">Volver a buscar</a>
+</div>
+
+</body>
+</html>
+
