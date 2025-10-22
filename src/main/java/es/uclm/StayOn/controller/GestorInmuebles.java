@@ -93,4 +93,22 @@ public class GestorInmuebles {
 
         return "redirect:/gestionInmuebles";
     }
+    
+ // Mostrar página de resultados con todos los inmuebles
+    @GetMapping("/resultados")
+    public String mostrarResultados(Model model) {
+        // Recupera todos los inmuebles y los pasa a la vista
+        model.addAttribute("inmuebles", inmuebleDAO.findAll());
+        return "resultados";  // resultados.html
+    }
+
+    // Mostrar detalle de un inmueble concreto
+    @GetMapping("/detalle/{id}")
+    public String mostrarDetalle(@PathVariable("id") Long id, Model model) {
+        // Busca el inmueble por ID
+        Inmueble inmueble = inmuebleDAO.findById(id).orElse(null);
+        model.addAttribute("inmueble", inmueble);
+        return "detalleInmueble";  // detalleInmueble.html
+    }
+
 }
