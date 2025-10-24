@@ -59,15 +59,23 @@
 
         <div class="acciones">
             <a th:href="@{/gestionInmuebles}">Gestión de Inmuebles</a>
-            <a th:href="@{/misReservas}">Ver Reservas</a>
+			<a th:href="@{/misReservas/propietario}">Ver Reservas</a>
+
             <a th:href="@{/politicas}">Políticas de Cancelación</a>
             <a th:href="@{/perfil}">Mi Perfil</a>
-            <a th:href="@{/notificaciones}">Notificaciones</a>
+			<a th:href="@{/notificaciones}" id="notifButton">
+			    Notificaciones
+			    <span id="notifBadge" class="badge" style="display:none">0</span>
+			</a>
+
         </div>
     </main>
 
     <footer>
         <p>&copy; 2025 StayOn. Todos los derechos reservados.</p>
     </footer>
+	<!-- 🔔 Pop-up y contador -->
+	<div th:insert="notificacionesFragment"></div>
+
 </body>
 </html>

@@ -18,13 +18,16 @@ public class GestorUsuarios {
     @Autowired
     private UsuarioDAO usuarioDAO;
 
+    @Autowired
+    private GestorNotificaciones gestorNotificaciones; // ✅ añadimos servicio unificado
+
     // 🔹 Mostrar formulario de registro
     @GetMapping("/registro")
     public String mostrarFormularioRegistro(Model model) {
         return "registro";
     }
 
-    // 🔹 Procesar registro (ya no usamos @ModelAttribute Usuario)
+    // 🔹 Procesar registro
     @PostMapping("/registro")
     public String registrarUsuario(@RequestParam String rol,
                                    @RequestParam String login,
@@ -41,8 +44,6 @@ public class GestorUsuarios {
         }
 
         Usuario nuevoUsuario;
-
-        // Crear tipo según el rol
         if ("PROPIETARIO".equalsIgnoreCase(rol)) {
             nuevoUsuario = new Propietario();
         } else {
@@ -57,16 +58,18 @@ public class GestorUsuarios {
 
         usuarioDAO.save(nuevoUsuario);
 
+        // 🆕 Notificación de bienvenida
+        gestorNotificaciones.enviar(nuevoUsuario, "USUARIO_REGISTRO",
+                "🎉 Bienvenido a StayOn, " + nombre + ". Tu cuenta ha sido creada con éxito.");
+
         return "redirect:/registroExitoso";
     }
 
-    // 🔹 Página de éxito
     @GetMapping("/registroExitoso")
     public String registroExitoso() {
         return "registroExitoso";
     }
 
-    // 🔹 Mostrar login
     @GetMapping("/login")
     public String mostrarLogin() {
         return "login";
@@ -93,6 +96,10 @@ public class GestorUsuarios {
 
         session.setAttribute("usuario", usuario);
 
+        // 🆕 Notificación de inicio de sesión
+        gestorNotificaciones.enviar(usuario, "LOGIN",
+                "👋 Has iniciado sesión correctamente en StayOn.");
+
         if (usuario instanceof Propietario) {
             return "redirect:/inicioPropietario";
         } else {
@@ -103,8 +110,12 @@ public class GestorUsuarios {
     // 🔹 Cerrar sesión
     @GetMapping("/logout")
     public String logout(HttpSession session) {
+        Usuario usuario = (Usuario) session.getAttribute("usuario");
+        if (usuario != null)
+            gestorNotificaciones.enviar(usuario, "LOGOUT", "👋 Has cerrado sesión en StayOn. ¡Hasta pronto!");
         session.invalidate();
         return "redirect:/inicio";
     }
 }
+
 
