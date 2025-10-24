@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Controller
 public class GestorBusquedas {
-
+//comentario apra volver a la version anterior
     @Autowired
     private InmuebleDAO inmuebleDAO;
     @Autowired
