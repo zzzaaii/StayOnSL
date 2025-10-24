@@ -30,6 +30,9 @@ public class Reserva {
 
     @ManyToOne
     private Inmueble inmueble;
+    
+    @OneToOne(mappedBy = "reserva", cascade = CascadeType.ALL)
+    private Pago pago;
 
     // Getters y Setters
     public Long getId() { return id; }
@@ -38,6 +41,9 @@ public class Reserva {
     public Date getFechaInicio() { return fechaInicio; }
     public void setFechaInicio(Date fechaInicio) { this.fechaInicio = fechaInicio; }
 
+    public Pago getPago() { return pago; }
+    public void setPago(Pago pago) { this.pago = pago; }
+    
     public Date getFechaFin() { return fechaFin; }
     public void setFechaFin(Date fechaFin) { this.fechaFin = fechaFin; }
 
@@ -78,6 +84,10 @@ public class Reserva {
 
         return inmueble.getPrecioPorNoche() * noches;
     }
+	public String getDireccion() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 
 

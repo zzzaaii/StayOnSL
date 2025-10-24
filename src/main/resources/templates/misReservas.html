@@ -175,8 +175,10 @@
 		    <td>
 		        <a th:href="@{'/misReservas/editar/' + ${reserva.id}}" class="btn-action">Editar</a> |
 		        <a th:href="@{'/misReservas/eliminar/' + ${reserva.id}}" class="btn-action">Eliminar</a> |
-		        <button th:if="${!reserva.pagado}" class="btn-pay">💳 Pagar</button>
-		        <button th:if="${reserva.pagado}" class="btn-disabled" disabled>Pagado</button>
+		        
+                <a th:if="${!reserva.pagado}" th:href="@{/pagos/pagar/{id}(id=${reserva.id})}" class="btn-pay" style="text-decoration: none;">💳 Pagar</a>
+		        
+                <button th:if="${reserva.pagado}" class="btn-disabled" disabled>Pagado</button>
 		    </td>
 		</tr>
 		</tbody>
@@ -185,4 +187,3 @@
 </main>
 </body>
 </html>
-

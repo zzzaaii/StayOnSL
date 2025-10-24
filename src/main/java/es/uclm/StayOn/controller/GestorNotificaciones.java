@@ -127,14 +127,14 @@ public class GestorNotificaciones {
     // 🔸 EVENTOS DE PAGOS
     // ===============================
 
-    public void pagoConfirmado(Inquilino inquilino, Inmueble inmueble) {
+    public void pagoConfirmado(Inquilino inquilino, Reserva reserva) {
         enviar(inquilino, "PAGO_CONFIRMADO",
-                "💳 Tu pago de la reserva en " + inmueble.getDireccion() + " ha sido procesado con éxito.");
+                "💳 Tu pago de la reserva en " + reserva.getDireccion() + " ha sido procesado con éxito.");
     }
 
-    public void pagoRecibido(Propietario propietario, Inmueble inmueble) {
+    public void pagoRecibido(Propietario propietario, Reserva reserva) {
         enviar(propietario, "PAGO_RECIBIDO",
-                "💰 Has recibido el pago de la reserva en " + inmueble.getDireccion() + ".");
+                "💰 Has recibido el pago de la reserva en " + reserva.getDireccion() + ".");
     }
  // ====================================================
  // 🔹 SECCIÓN 3: ENDPOINT PARA CONTADOR AJAX
