@@ -102,6 +102,15 @@
         <p><strong>Descripción:</strong> <span th:text="${inmueble.descripcion}"></span></p>
         <p><strong>Precio por noche:</strong> 
            <span id="precioPorNoche" th:text="${#numbers.formatDecimal(inmueble.precioPorNoche, 1, 'POINT', 2, 'COMMA')}"></span> €</p>
+
+        <!-- 🔵 Tipo de reserva: directa o por solicitud -->
+        <p>
+            <strong>Tipo de reserva:</strong>
+            <span th:text="${inmueble.disponibilidad != null and inmueble.disponibilidad.directa} ?
+                           'Reserva directa (se acepta automáticamente al reservar)' :
+                           'Reserva con solicitud (el propietario debe aceptarla primero)'">
+            </span>
+        </p>
     </div>
 
     <form th:action="@{/confirmarReserva}" method="post" th:object="${reserva}">
@@ -117,7 +126,6 @@
             <input type="date" th:field="*{fechaFin}" required>
         </div>
 
-        <!-- 🔹 Precio total dinámico -->
         <p class="precio-total">Total estimado: <span id="precioTotal">-</span> €</p>
 
         <button type="submit" class="btn-confirmar">Confirmar reserva</button>
@@ -127,7 +135,6 @@
 </div>
 
 <script>
-    // Obtener elementos del formulario
     const precioPorNoche = parseFloat(document.getElementById("precioPorNoche").innerText.replace(",", ".")) || 0;
     const inputInicio = document.querySelector('[name="fechaInicio"]');
     const inputFin = document.querySelector('[name="fechaFin"]');

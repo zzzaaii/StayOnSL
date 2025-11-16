@@ -128,6 +128,7 @@
                 <th>Dirección</th>
                 <th>Ciudad</th>
                 <th>Precio por Noche (€)</th>
+                <th>Reserva</th> <!-- 🔵 NUEVA COLUMNA -->
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -135,12 +136,21 @@
             <tr th:each="inmueble : ${inmuebles}">
                 <td th:text="${inmueble.direccion}"></td>
                 <td th:text="${inmueble.ciudad}"></td>
-				<td th:text="${#numbers.formatDecimal(inmueble.precioPorNoche, 1, 'POINT', 2, 'POINT')}"></td>
-                <td>
-					<a th:href="@{/gestionInmuebles/editar/{id}(id=${inmueble.id})}" class="btn-action">Editar</a>
-					<a th:href="@{/gestionInmuebles/eliminar/{id}(id=${inmueble.id})}" class="btn-action">Eliminar</a>
-					<a th:href="@{'/gestionInmuebles/' + ${inmueble.id} + '/disponibilidades'}" class="btn-action">Disponibilidades</a>
+                <td th:text="${#numbers.formatDecimal(inmueble.precioPorNoche, 1, 'POINT', 2, 'POINT')}"></td>
 
+                <!-- 🔵 MOSTRAR DIRECTA / INDIRECTA -->
+                <td>
+                    <span th:text="${
+                        inmueble.disponibilidad == null ?
+                        'Sin definir' :
+                        (inmueble.disponibilidad.directa ? 'Directa' : 'Indirecta')
+                    }"></span>
+                </td>
+
+                <td>
+                    <a th:href="@{/gestionInmuebles/editar/{id}(id=${inmueble.id})}" class="btn-action">Editar</a>
+                    <a th:href="@{/gestionInmuebles/eliminar/{id}(id=${inmueble.id})}" class="btn-action">Eliminar</a>
+                    <a th:href="@{'/gestionInmuebles/' + ${inmueble.id} + '/disponibilidades'}" class="btn-action">Disponibilidades</a>
                 </td>
             </tr>
         </tbody>
@@ -148,4 +158,5 @@
 </main>
 </body>
 </html>
+
 

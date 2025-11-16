@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import es.uclm.StayOn.entity.Inmueble;
 import es.uclm.StayOn.entity.Inquilino;
 import es.uclm.StayOn.entity.Reserva;
+import es.uclm.StayOn.entity.Reserva.EstadoReserva;
 import es.uclm.StayOn.persistence.InmuebleDAO;
 import es.uclm.StayOn.persistence.ReservaDAO;
 
@@ -18,13 +19,15 @@ import java.util.stream.Collectors;
 
 @Controller
 public class GestorBusquedas {
-//comentario apra volver a la version anterior
+
     @Autowired
     private InmuebleDAO inmuebleDAO;
+
     @Autowired
     private ReservaDAO reservaDAO;
+
     @Autowired
-    private GestorNotificaciones gestorNotificaciones; // ✅ añadido
+    private GestorNotificaciones gestorNotificaciones; // ✅ ya lo tenías
 
     @GetMapping("/buscarInmuebles")
     public String mostrarPaginaBusqueda(Model model) {
@@ -108,6 +111,7 @@ public class GestorBusquedas {
     public String mostrarFormularioReserva(@PathVariable Long id, Model model) {
         Inmueble inmueble = inmuebleDAO.findById(id).orElse(null);
         if (inmueble == null) return "redirect:/buscarInmuebles";
+
         model.addAttribute("inmueble", inmueble);
         model.addAttribute("reserva", new Reserva());
         return "formularioReserva";
@@ -124,9 +128,24 @@ public class GestorBusquedas {
 
         reserva.setInquilino(inquilino);
         reserva.setInmueble(inmueble);
+
+        // 🔵 AQUÍ va la lógica de DIRECTA / PENDIENTE
+        boolean esDirecta = inmueble.getDisponibilidad() != null
+                && inmueble.getDisponibilidad().isDirecta();
+
+        if (esDirecta) {
+            // Reserva directa: el propietario no tiene que aceptar
+            reserva.setEstado(EstadoReserva.ACEPTADA);
+            reserva.setPagado(false);
+        } else {
+            // Reserva por solicitud: queda pendiente hasta que el propietario acepte
+            reserva.setEstado(EstadoReserva.PENDIENTE);
+            reserva.setPagado(false);
+        }
+
         reservaDAO.save(reserva);
 
-        // 🆕 Notificaciones
+        // Notificaciones genéricas que ya tenías
         gestorNotificaciones.enviar(inquilino, "RESERVA_REALIZADA",
                 "📝 Has realizado una reserva en " + inmueble.getDireccion());
         gestorNotificaciones.enviar(inmueble.getPropietario(), "RESERVA_RECIBIDA",
@@ -135,7 +154,11 @@ public class GestorBusquedas {
         model.addAttribute("inmueble", inmueble);
         model.addAttribute("reserva", reserva);
         model.addAttribute("total", reserva.getPrecioTotal());
+        // por si quieres usarlo en la vista:
+        model.addAttribute("esDirecta", esDirecta);
+
         return "reservaConfirmada";
     }
 }
+
 

@@ -38,15 +38,25 @@
 <body>
 
 <div class="card">
-  <h1>✅ Reserva confirmada</h1>
+  <h1>✅ Reserva registrada</h1>
   <p><strong>Inmueble:</strong> <span th:text="${inmueble.direccion}"></span></p>
   <p><strong>Ciudad:</strong> <span th:text="${inmueble.ciudad}"></span></p>
   <p><strong>Desde:</strong> <span th:text="${#dates.format(reserva.fechaInicio, 'dd/MM/yyyy')}"></span></p>
   <p><strong>Hasta:</strong> <span th:text="${#dates.format(reserva.fechaFin, 'dd/MM/yyyy')}"></span></p>
   <p><strong>Total:</strong> <span th:text="${#numbers.formatDecimal(total, 1, 'POINT', 2, 'COMMA')}"></span> €</p>
+
+  <!-- 🔵 Mensaje según sea directa o por solicitud -->
+  <p th:if="${inmueble.disponibilidad != null and inmueble.disponibilidad.directa}">
+      Tu reserva es <strong>directa</strong> y ha sido <strong>aceptada automáticamente</strong>.<br>
+      Puedes ir a <em>Mis Reservas</em> para realizar el pago.
+  </p>
+  <p th:if="${inmueble.disponibilidad == null or !inmueble.disponibilidad.directa}">
+      Tu reserva está <strong>pendiente de aceptación</strong> por parte del propietario.<br>
+      Cuando la acepte, podrás pagarla desde <em>Mis Reservas</em>.
+  </p>
+
   <a th:href="@{/buscarInmuebles}" class="btn">Volver a buscar</a>
 </div>
 
 </body>
 </html>
-

@@ -1,7 +1,9 @@
 package es.uclm.StayOn.controller;
 
+import es.uclm.StayOn.entity.Inquilino;
 import es.uclm.StayOn.entity.Pago;
 import es.uclm.StayOn.entity.Reserva;
+import es.uclm.StayOn.entity.Reserva.EstadoReserva;
 import es.uclm.StayOn.persistence.PagoDAO;
 import es.uclm.StayOn.persistence.ReservaDAO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,30 +11,43 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Controller
 @RequestMapping("/pagos")
 public class GestorPagos {
-	@Autowired
+
+    @Autowired
     private ReservaDAO reservaDAO;
 
     @Autowired
     private PagoDAO pagoDAO;
 
-    // Inyectamos el gestor de notificaciones (como estaba en GestorReservas)
     @Autowired
     private GestorNotificaciones gestorNotificaciones;
 
-    /**
-     * Muestra el formulario de pago para una reserva específica.
-     */
+    // ⭐ Pantalla principal: HISTORIAL DE PAGOS
+    @GetMapping
+    public String verPagos(@SessionAttribute("usuario") Inquilino inquilino,
+                           Model model) {
+
+        // Obtener historial del usuario
+        List<Pago> pagos = pagoDAO.findByReserva_Inquilino(inquilino);
+
+        model.addAttribute("pagos", pagos);
+        model.addAttribute("inquilino", inquilino);
+
+        return "pagos";   // ⇦ este será el HTML del historial
+    }
+
+    // ⭐ Mostrar formulario de pago para una reserva concreta
     @GetMapping("/pagar/{reservaId}")
     public String mostrarFormularioPago(@PathVariable Long reservaId, Model model) {
+
         Reserva reserva = reservaDAO.findById(reservaId).orElse(null);
 
-        // No se puede pagar si la reserva no existe o ya está pagada
-        if (reserva == null || reserva.isPagado()) {
+        if (reserva == null || reserva.isPagado() || reserva.getEstado() != EstadoReserva.ACEPTADA) {
             return "redirect:/misReservas";
         }
 
@@ -41,46 +56,40 @@ public class GestorPagos {
 
         model.addAttribute("pago", pago);
         model.addAttribute("reserva", reserva);
-        model.addAttribute("total", reserva.getPrecioTotal()); // Pasamos el total a la vista
+        model.addAttribute("total", reserva.getPrecioTotal());
 
-        return "formularioPago"; // La nueva página HTML que crearemos
+        return "formularioPago";
     }
 
-    /**
-     * Procesa el pago (simulado) enviado desde el formulario.
-     */
+    // ⭐ Procesar el pago de la reserva
     @PostMapping("/procesarPago")
-    public String procesarPago(@ModelAttribute Pago pago, @RequestParam("reservaId") Long reservaId) {
-        
+    public String procesarPago(@ModelAttribute Pago pago,
+                               @RequestParam("reservaId") Long reservaId) {
+
         Reserva reserva = reservaDAO.findById(reservaId).orElse(null);
+
         if (reserva == null) {
-            return "redirect:/misReservas"; // Error
+            return "redirect:/misReservas";
         }
 
-        // --- SIMULACIÓN DE PAGO ---
-        // Aquí iría la lógica real para conectar con una pasarela de pago (Stripe, PayPal API).
-        // Usaríamos pago.getNumeroTarjeta(), pago.getEmailPaypal(), etc.
-        // Como simulación, solo generamos una referencia y guardamos.
-        // --- FIN SIMULACIÓN ---
-
-        pago.setReferencia(UUID.randomUUID().toString().substring(0, 10).toUpperCase()); // Referencia de pago única
+        // Generar referencia aleatoria
+        pago.setReferencia(UUID.randomUUID().toString().substring(0, 10).toUpperCase());
         pago.setReserva(reserva);
-        pagoDAO.save(pago); // Guardamos el objeto Pago
+        pagoDAO.save(pago);
 
-        reserva.setPagado(true);   // Marcamos la reserva como pagada
-        reserva.setPago(pago);     // Vinculamos el pago a la reserva
-        reservaDAO.save(reserva);  // Actualizamos la reserva
+        reserva.setPagado(true);
+        reserva.setPago(pago);
+        reserva.setEstado(EstadoReserva.CONFIRMADA);
+        reservaDAO.save(reserva);
 
-        // Notificar al inquilino y al propietario
         try {
-            // Asumimos que gestorNotificaciones tiene estos métodos (basado en GestorReservas)
             gestorNotificaciones.pagoConfirmado(reserva.getInquilino(), reserva);
             gestorNotificaciones.pagoRecibido(reserva.getInmueble().getPropietario(), reserva);
         } catch (Exception e) {
-            System.err.println("⚠️ Error al notificar pago: " + e.getMessage());
+            System.err.println("⚠️ Error enviando notificaciones: " + e.getMessage());
         }
 
-        return "redirect:/misReservas"; // Volvemos a la lista de reservas
+        return "redirect:/misReservas";
     }
-  
 }
+
