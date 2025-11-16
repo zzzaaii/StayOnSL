@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Reservas Recibidas - StayOn</title>
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            background-color: #3f72af;
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            width: 100%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin: 0.2rem 0;
+        }
+
+        header p {
+            margin: 0.2rem 0 0.8rem 0;
+            font-size: 1.1rem;
+        }
+
+        header a {
+            text-decoration: none;
+            background-color: #112d4e;
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        header a:hover {
+            background-color: #0b2542;
+        }
+
+        main {
+            max-width: 1100px;
+            width: 90%;
+            margin-top: 2rem;
+            background-color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 1.05rem;
+        }
+
+        th, td {
+            padding: 1rem;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background-color: #3f72af;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f5fb;
+        }
+
+        .btn-aceptar {
+            background-color: #4CAF50;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-aceptar:hover {
+            background-color: #3e8e41;
+        }
+
+        .btn-rechazar {
+            background-color: #d9534f;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-rechazar:hover {
+            background-color: #b94440;
+        }
+
+        .estado-label {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .pendiente { background-color: #ffb820; }
+        .aceptada { background-color: #5cb85c; }
+        .confirmada { background-color: #0275d8; }
+        .rechazada { background-color: #d9534f; }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>🏠 StayOn</h1>
+    <p>Reservas recibidas</p>
+    <a th:href="@{/inicioPropietario}">Volver al menú</a>
+</header>
+
+<main>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Inquilino</th>
+                <th>Dirección</th>
+                <th>Ciudad</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Fin</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="reserva : ${reservas}">
+            <td th:text="${reserva.inquilino.nombre + ' ' + reserva.inquilino.apellidos}"></td>
+            <td th:text="${reserva.inmueble.direccion}"></td>
+            <td th:text="${reserva.inmueble.ciudad}"></td>
+
+            <td th:text="${#dates.format(reserva.fechaInicio, 'dd/MM/yyyy')}"></td>
+            <td th:text="${#dates.format(reserva.fechaFin, 'dd/MM/yyyy')}"></td>
+
+            <!-- Estado con color -->
+            <td>
+                <span th:class="${'estado-label ' 
+                        + (reserva.estado.name() == 'PENDIENTE' ? 'pendiente' :
+                           reserva.estado.name() == 'ACEPTADA' ? 'aceptada' :
+                           reserva.estado.name() == 'CONFIRMADA' ? 'confirmada' : 'rechazada')}"
+                      th:text="${reserva.estado.name()}"></span>
+            </td>
+
+            <!-- Acciones -->
+            <td>
+                <!-- PENDIENTE: mostrar botones -->
+                <a th:if="${reserva.estado.name() == 'PENDIENTE'}"
+                   th:href="@{'/misReservas/aceptar/' + ${reserva.id}}"
+                   class="btn-aceptar">Aceptar</a>
+
+                <span th:if="${reserva.estado.name() == 'PENDIENTE'}"> | </span>
+
+                <a th:if="${reserva.estado.name() == 'PENDIENTE'}"
+                   th:href="@{'/misReservas/rechazar/' + ${reserva.id}}"
+                   class="btn-rechazar">Rechazar</a>
+
+                <!-- ACEPTADA -->
+                <span th:if="${reserva.estado.name() == 'ACEPTADA'}">Aceptada (pendiente de pago)</span>
+
+                <!-- CONFIRMADA -->
+                <span th:if="${reserva.estado.name() == 'CONFIRMADA'}">Pagada ✔</span>
+
+                <!-- RECHAZADA -->
+                <span th:if="${reserva.estado.name() == 'RECHAZADA'}">Rechazada ❌</span>
+            </td>
+        </tr>
+        </tbody>
+
+    </table>
+
+</main>
+
+</body>
+</html>
+

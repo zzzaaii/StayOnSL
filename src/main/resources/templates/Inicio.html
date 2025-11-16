@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Inicio - StayOn</title>
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* BANNER */
+        header {
+            background-color: #1e90ff; /* azul StayOn */
+            padding: 60px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .banner-contenido {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 40px 60px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            max-width: 700px;
+        }
+
+        .banner-contenido h1 {
+            color: #1e90ff;
+            font-size: 3em;
+            margin: 0 0 15px 0;
+        }
+
+        .banner-contenido p {
+            font-size: 1.3em;
+            color: #333;
+            margin: 0 0 25px 0;
+        }
+
+        .banner-contenido .botones-banner {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .botones-banner a {
+            text-decoration: none;
+            padding: 12px 25px;
+            background-color: #1e90ff;
+            color: #fff;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .botones-banner a:hover {
+            background-color: #104e8b;
+            transform: translateY(-2px);
+        }
+
+        /* CONTENIDO PRINCIPAL */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        main h2 {
+            font-size: 2em;
+            color: #1e90ff;
+            margin-bottom: 15px;
+        }
+
+        main p {
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            max-width: 600px;
+        }
+
+        /* BOTONES DE FUNCIONES */
+        .acciones {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 250px;
+            margin-bottom: 40px;
+        }
+
+        .acciones a {
+            background-color: #1e90ff;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            text-align: center;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .acciones a:hover {
+            background-color: #104e8b;
+            transform: translateY(-2px);
+        }
+
+        /* FOOTER */
+        footer {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 15px 20px;
+            margin: 20px;
+            border-radius: 12px; /* esquinas redondeadas */
+            max-width: 600px;
+            align-self: center; /* centrado horizontal */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BANNER -->
+    <header>
+        <div class="banner-contenido">
+            <h1>🏠 StayOn</h1>
+            <p>Encuentra tu alojamiento ideal y reserva con facilidad. ¡Tu hogar temporal te espera!</p>
+            <div class="botones-banner">
+                <a th:href="@{/registro}">Registrarse</a>
+                <a th:href="@{/login}">Iniciar sesión</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main>
+        <h2>Bienvenido a StayOn</h2>
+        <p>Explora alojamientos, gestiona tus reservas y encuentra tu lugar ideal de manera rápida y segura.</p>
+
+        <!-- BOTONES DE FUNCIONES -->
+        <div class="acciones">
+            <a th:href="@{/buscarInmuebles}">Buscar Inmuebles</a>
+            <a th:href="@{/misReservas}">Mis Reservas</a>
+            <a th:href="@{/gestionInmuebles}">Gestión de Inmuebles</a>
+            <a th:href="@{/politicas}">Políticas de Cancelación</a>
+            <a th:href="@{/perfil}">Mi Perfil</a>
+            <a th:href="@{/notificaciones}">Notificaciones</a>
+            <a th:href="@{/pagos}">Pagos</a>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>&copy; 2025 StayOn. Todos los derechos reservados.</p>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Inmuebles - StayOn</title>
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            background-color: #f5f7fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            background-color: #3f72af;
+            color: white;
+            width: 100%;
+            text-align: center;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin: 0.2rem 0;
+        }
+
+        header p {
+            margin: 0.2rem 0 0.8rem 0;
+            font-size: 1.1rem;
+        }
+
+        header a {
+            text-decoration: none;
+            background-color: #112d4e;
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        header a:hover {
+            background-color: #0b2542;
+        }
+
+        main {
+            max-width: 1000px;
+            width: 90%;
+            margin-top: 2rem;
+            background-color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+        }
+
+        .btn-submit {
+            background-color: #3f72af;
+            color: white;
+            text-decoration: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            transition: 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-submit:hover {
+            background-color: #2e5c8a;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 1.1rem;
+        }
+
+        th, td {
+            padding: 1rem;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background-color: #3f72af;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f5fb;
+        }
+
+        .btn-action {
+            text-decoration: none;
+            color: #3f72af;
+            font-weight: bold;
+        }
+
+        .btn-action:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>🏠 StayOn</h1>
+    <p>Gestión de tus Inmuebles</p>
+    <a th:href="@{/inicioPropietario}">Volver al inicio</a>
+</header>
+
+<main>
+    <div class="actions">
+        <a th:href="@{/gestionInmuebles/nuevo}" class="btn-submit">➕ Nuevo Inmueble</a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Dirección</th>
+                <th>Ciudad</th>
+                <th>Precio por Noche (€)</th>
+                <th>Reserva</th> <!-- 🔵 NUEVA COLUMNA -->
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="inmueble : ${inmuebles}">
+                <td th:text="${inmueble.direccion}"></td>
+                <td th:text="${inmueble.ciudad}"></td>
+                <td th:text="${#numbers.formatDecimal(inmueble.precioPorNoche, 1, 'POINT', 2, 'POINT')}"></td>
+
+                <!-- 🔵 MOSTRAR DIRECTA / INDIRECTA -->
+                <td>
+                    <span th:text="${
+                        inmueble.disponibilidad == null ?
+                        'Sin definir' :
+                        (inmueble.disponibilidad.directa ? 'Directa' : 'Indirecta')
+                    }"></span>
+                </td>
+
+                <td>
+                    <a th:href="@{/gestionInmuebles/editar/{id}(id=${inmueble.id})}" class="btn-action">Editar</a>
+                    <a th:href="@{/gestionInmuebles/eliminar/{id}(id=${inmueble.id})}" class="btn-action">Eliminar</a>
+                    <a th:href="@{'/gestionInmuebles/' + ${inmueble.id} + '/disponibilidades'}" class="btn-action">Disponibilidades</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>
+
+

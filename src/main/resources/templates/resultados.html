@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultados de búsqueda - StayOn</title>
+</head>
+<body>
+    <h1>Resultados de inmuebles</h1>
+
+    <div th:if="${inmuebles != null and !inmuebles.isEmpty()}">
+        <ul>
+            <li th:each="inmueble : ${inmuebles}">
+                <h3 th:text="${inmueble.tipo} + ' en ' + ${inmueble.ciudad}"></h3>
+                <p th:text="${inmueble.descripcion}"></p>
+                <p><strong>Precio:</strong> <span th:text="${inmueble.precioPorNoche} + ' €/noche'"></span></p>
+                <!-- Enlace corregido con prefijo del controlador -->
+                <a th:href="@{'/gestionInmuebles/detalle/' + ${inmueble.id}}">Ver detalles</a>
+            </li>
+        </ul>
+    </div>
+
+    <div th:if="${inmuebles == null or inmuebles.isEmpty()}">
+        <p>No se han encontrado inmuebles disponibles.</p>
+    </div>
+
+    <br>
+    <a th:href="@{/}">Volver al inicio</a>
+</body>
+</html>
+

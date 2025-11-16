@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Reserva - StayOn</title>
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            margin-top: 4rem;
+            background-color: white;
+            border-radius: 15px;
+            padding: 2.5rem 3rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 700px;
+        }
+
+        h1 {
+            color: #3f72af;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .inmueble-info {
+            margin-bottom: 2rem;
+        }
+
+        .inmueble-info p {
+            margin: 0.4rem 0;
+            font-size: 1.1rem;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        label {
+            font-weight: bold;
+            color: #3f72af;
+        }
+
+        input[type="date"] {
+            padding: 0.7rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .precio-total {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #222;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .btn-confirmar {
+            align-self: center;
+            background-color: #3f72af;
+            color: white;
+            border: none;
+            padding: 0.9rem 2.5rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-confirmar:hover {
+            background-color: #2e5c8a;
+        }
+
+        .btn-volver {
+            text-decoration: none;
+            color: #3f72af;
+            text-align: center;
+            display: block;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Confirmar Reserva</h1>
+
+    <div class="inmueble-info">
+        <p><strong>Tipo:</strong> <span th:text="${inmueble.tipo}"></span></p>
+        <p><strong>Ciudad:</strong> <span th:text="${inmueble.ciudad}"></span></p>
+        <p><strong>Dirección:</strong> <span th:text="${inmueble.direccion}"></span></p>
+        <p><strong>Descripción:</strong> <span th:text="${inmueble.descripcion}"></span></p>
+        <p><strong>Precio por noche:</strong> 
+           <span id="precioPorNoche" th:text="${#numbers.formatDecimal(inmueble.precioPorNoche, 1, 'POINT', 2, 'COMMA')}"></span> €</p>
+
+        <!-- 🔵 Tipo de reserva: directa o por solicitud -->
+        <p>
+            <strong>Tipo de reserva:</strong>
+            <span th:text="${inmueble.disponibilidad != null and inmueble.disponibilidad.directa} ?
+                           'Reserva directa (se acepta automáticamente al reservar)' :
+                           'Reserva con solicitud (el propietario debe aceptarla primero)'">
+            </span>
+        </p>
+    </div>
+
+    <form th:action="@{/confirmarReserva}" method="post" th:object="${reserva}">
+        <input type="hidden" th:value="${inmueble.id}" name="inmuebleId"/>
+
+        <div>
+            <label>Fecha inicio:</label>
+            <input type="date" th:field="*{fechaInicio}" required>
+        </div>
+
+        <div>
+            <label>Fecha fin:</label>
+            <input type="date" th:field="*{fechaFin}" required>
+        </div>
+
+        <p class="precio-total">Total estimado: <span id="precioTotal">-</span> €</p>
+
+        <button type="submit" class="btn-confirmar">Confirmar reserva</button>
+    </form>
+
+    <a th:href="@{/buscarInmuebles}" class="btn-volver">← Volver a búsqueda</a>
+</div>
+
+<script>
+    const precioPorNoche = parseFloat(document.getElementById("precioPorNoche").innerText.replace(",", ".")) || 0;
+    const inputInicio = document.querySelector('[name="fechaInicio"]');
+    const inputFin = document.querySelector('[name="fechaFin"]');
+    const totalSpan = document.getElementById("precioTotal");
+
+    function calcularTotal() {
+        const inicio = new Date(inputInicio.value);
+        const fin = new Date(inputFin.value);
+
+        if (!isNaN(inicio) && !isNaN(fin) && fin > inicio) {
+            const diffMs = fin - inicio;
+            const noches = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+            const total = noches * precioPorNoche;
+            totalSpan.textContent = total.toFixed(2);
+        } else {
+            totalSpan.textContent = "-";
+        }
+    }
+
+    inputInicio.addEventListener("change", calcularTotal);
+    inputFin.addEventListener("change", calcularTotal);
+</script>
+
+</body>
+</html>

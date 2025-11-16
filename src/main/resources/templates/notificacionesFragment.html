@@ -1,0 +1,67 @@
+<!-- templates/notificacionesFragment.html -->
+<th:block xmlns:th="http://www.thymeleaf.org">
+    <style>
+        #notifPopup {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: #1e90ff;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            display: none;
+            font-weight: bold;
+            z-index: 9999;
+            animation: fadeInOut 4s ease-in-out;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(10px); }
+            10%, 90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(10px); }
+        }
+        .badge {
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            font-size: 0.8em;
+            padding: 3px 7px;
+            margin-left: 6px;
+            position: relative;
+            top: -3px;
+        }
+    </style>
+
+    <div id="notifPopup">🔔 Nueva notificación en tu buzón</div>
+
+    <script>
+        let prevCount = 0;
+        async function checkNotifications() {
+            try {
+                const res = await fetch('/notificaciones/noLeidas');
+                if (!res.ok) return;
+                const count = await res.json();
+                const badge = document.getElementById('notifBadge');
+                const popup = document.getElementById('notifPopup');
+                if (badge) {
+                    if (count > 0) {
+                        badge.textContent = count;
+                        badge.style.display = 'inline';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+                if (count > prevCount) {
+                    popup.style.display = 'block';
+                    setTimeout(() => popup.style.display = 'none', 4000);
+                }
+                prevCount = count;
+            } catch (err) {
+                console.error('Error comprobando notificaciones:', err);
+            }
+        }
+        setInterval(checkNotifications, 1000);
+        window.addEventListener('load', checkNotifications);
+    </script>
+</th:block>
+

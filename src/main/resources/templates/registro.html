@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Usuario - StayOn</title>
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+</head>
+<body>
+    <div class="form-container">
+        <h2>Crear una cuenta en StayOn</h2>
+        <p>Regístrate para alquilar o poner en alquiler tu alojamiento.</p>
+
+        <!-- Error -->
+        <div th:if="${error}" class="error-message">
+            <p th:text="${error}"></p>
+        </div>
+
+        <!-- Formulario: quitar th:object y th:field, usar name para que GestorUsuarios funcione -->
+        <form th:action="@{/registro}" method="post">
+            <div class="input-group">
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" name="nombre" required>
+            </div>
+            <div class="input-group">
+                <label for="apellidos">Apellidos:</label>
+                <input type="text" id="apellidos" name="apellidos" required>
+            </div>
+            <div class="input-group">
+                <label for="login">Email (será tu login):</label>
+                <input type="email" id="login" name="login" required>
+            </div>
+            <div class="input-group">
+                <label for="pass">Contraseña:</label>
+                <input type="password" id="pass" name="pass" required>
+            </div>
+            <div class="input-group">
+                <label for="direccion">Dirección:</label>
+                <input type="text" id="direccion" name="direccion">
+            </div>
+
+            <fieldset class="rol-selector">
+                <legend>Quiero registrarme como:</legend>
+                <div>
+                    <input type="radio" id="rol-inquilino" name="rol" value="INQUILINO" checked>
+                    <label for="rol-inquilino">Inquilino (para buscar y reservar)</label>
+                </div>
+                <div>
+                    <input type="radio" id="rol-propietario" name="rol" value="PROPIETARIO">
+                    <label for="rol-propietario">Propietario (para ofertar mis inmuebles)</label>
+                </div>
+            </fieldset>
+
+            <button type="submit" class="btn-submit">Registrarme</button>
+        </form>
+
+        <div class="login-link">
+            <p>¿Ya tienes una cuenta? <a th:href="@{/login}">Inicia sesión</a></p>
+        </div>
+    </div>
+</body>
+</html>
