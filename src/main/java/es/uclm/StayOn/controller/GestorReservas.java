@@ -21,7 +21,7 @@ public class GestorReservas {
     private ReservaDAO reservaDAO;
 
     @Autowired
-    private GestorNotificaciones gestorNotificaciones; // ✅ usamos el gestor unificado
+    private GestorNotificaciones gestorNotificaciones; // usamos el gestor unificado
 
     // 🔹 Mostrar reservas del inquilino actual
     @GetMapping

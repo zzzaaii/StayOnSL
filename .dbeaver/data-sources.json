@@ -1,14 +1,14 @@
 {
 	"folders": {},
 	"connections": {
-		"derby-199dca0b152-4a01fbcb49b0977b": {
+		"derby-19a24d72f05-45916751e2b93e6d": {
 			"provider": "generic",
 			"driver": "derby",
 			"name": "database",
 			"save-password": true,
 			"configuration": {
-				"database": "C:\\Users\\USUARIO\\Documents\\Universidad\\tercero\\primer cuatri\\ingenieria del software 2\\Practicas\\StayOnSL\\database",
-				"url": "jdbc:derby:C:\\Users\\USUARIO\\Documents\\Universidad\\tercero\\primer cuatri\\ingenieria del software 2\\Practicas\\StayOnSL\\database",
+				"database": "C:\\Users\\zaida\\git\\StayOnSL\\database",
+				"url": "jdbc:derby:C:\\Users\\zaida\\git\\StayOnSL\\database",
 				"configurationType": "MANUAL",
 				"type": "dev",
 				"closeIdleConnection": true,
