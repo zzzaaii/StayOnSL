@@ -25,7 +25,11 @@ public class GestorReservas {
     private ReservaDAO reservaDAO;
 
     @Autowired
-    private GestorNotificaciones gestorNotificaciones;
+
+    private GestorNotificaciones gestorNotificaciones1;
+
+    private GestorNotificaciones gestorNotificaciones; // usamos el gestor unificado
+
 
     // ===============================
     // 🔹 LISTADO DE RESERVAS INQUILINO
@@ -79,7 +83,7 @@ public class GestorReservas {
 
         try {
             if (inmueble != null && inmueble.getPropietario() != null) {
-                gestorNotificaciones.nuevaReserva(inmueble.getPropietario(), inmueble);
+                gestorNotificaciones1.nuevaReserva(inmueble.getPropietario(), inmueble);
             }
         } catch (Exception e) {
             System.err.println("⚠️ Error al generar notificación de nueva reserva: " + e.getMessage());
@@ -101,7 +105,7 @@ public class GestorReservas {
         reservaDAO.save(reserva);
 
         try {
-            gestorNotificaciones.reservaConfirmada(reserva.getInquilino(), reserva.getInmueble());
+            gestorNotificaciones1.reservaConfirmada(reserva.getInquilino(), reserva.getInmueble());
         } catch (Exception e) {
             System.err.println("⚠️ Error al notificar aceptación: " + e.getMessage());
         }
@@ -122,7 +126,7 @@ public class GestorReservas {
         reservaDAO.save(reserva);
 
         try {
-            gestorNotificaciones.reservaRechazada(reserva.getInquilino(), reserva.getInmueble());
+            gestorNotificaciones1.reservaRechazada(reserva.getInquilino(), reserva.getInmueble());
         } catch (Exception e) {
             System.err.println("⚠️ Error al notificar rechazo: " + e.getMessage());
         }
@@ -144,7 +148,7 @@ public class GestorReservas {
 
         try {
             if (usuario instanceof Inquilino inquilino) {
-                gestorNotificaciones.reservaCanceladaPorInquilino(
+                gestorNotificaciones1.reservaCanceladaPorInquilino(
                         reserva.getInmueble().getPropietario(),
                         reserva.getInmueble(),
                         inquilino
@@ -154,7 +158,7 @@ public class GestorReservas {
             }
 
             if (usuario instanceof Propietario propietario) {
-                gestorNotificaciones.reservaCanceladaPorPropietario(
+                gestorNotificaciones1.reservaCanceladaPorPropietario(
                         reserva.getInquilino(),
                         reserva.getInmueble(),
                         propietario
