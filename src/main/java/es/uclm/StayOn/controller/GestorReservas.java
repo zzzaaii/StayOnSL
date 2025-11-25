@@ -31,9 +31,7 @@ public class GestorReservas {
     private GestorNotificaciones gestorNotificaciones; // usamos el gestor unificado
 
 
-    // ===============================
-    // 🔹 LISTADO DE RESERVAS INQUILINO
-    // ===============================
+  
     @GetMapping
     public String listarReservas(Model model, @SessionAttribute("usuario") Inquilino inquilino) {
         List<Reserva> reservas = reservaDAO.findByInquilino(inquilino);
@@ -41,9 +39,7 @@ public class GestorReservas {
         return "misReservas";
     }
 
-    // ===============================
-    // 🔹 LISTADO PARA PROPIETARIO
-    // ===============================
+    
     @GetMapping("/propietario")
     public String listarReservasPropietario(Model model, @SessionAttribute("usuario") Propietario propietario) {
         List<Reserva> reservas = reservaDAO.findByInmueblePropietario(propietario);
@@ -51,9 +47,6 @@ public class GestorReservas {
         return "reservasPropietario";
     }
 
-    // ===============================
-    // 🔹 NUEVA RESERVA → DIRECTA O PENDIENTE
-    // ===============================
     @GetMapping("/nueva")
     public String nuevaReserva(Model model) {
         model.addAttribute("reserva", new Reserva());
@@ -64,18 +57,12 @@ public class GestorReservas {
     public String guardarReserva(@ModelAttribute Reserva reserva, @SessionAttribute("usuario") Inquilino inquilino) {
 
         reserva.setInquilino(inquilino);
-
         Inmueble inmueble = reserva.getInmueble();
 
-        // 🔵 Si el inmueble es de reserva directa → estado = ACEPTADA
-        if (inmueble != null &&
-            inmueble.getDisponibilidad() != null &&
-            inmueble.getDisponibilidad().isDirecta()) {
-
+        // Si la reserva es directa
+        if (inmueble != null && inmueble.getDisponibilidad() != null && inmueble.getDisponibilidad().isDirecta()) {
             reserva.setEstado(EstadoReserva.ACEPTADA);
-
         } else {
-            // 🔴 Reserva normal → estado = PENDIENTE
             reserva.setEstado(EstadoReserva.PENDIENTE);
         }
 
@@ -86,15 +73,13 @@ public class GestorReservas {
                 gestorNotificaciones1.nuevaReserva(inmueble.getPropietario(), inmueble);
             }
         } catch (Exception e) {
-            System.err.println("⚠️ Error al generar notificación de nueva reserva: " + e.getMessage());
+            System.err.println("Error al notificar nueva reserva: " + e.getMessage());
         }
 
         return "redirect:/misReservas";
     }
 
-    // ===============================
-    // 🔹 PROPIETARIO ACEPTA RESERVA
-    // ===============================
+   
     @GetMapping("/aceptar/{id}")
     public String aceptarReserva(@PathVariable Long id, @SessionAttribute("usuario") Propietario propietario) {
 
@@ -107,36 +92,36 @@ public class GestorReservas {
         try {
             gestorNotificaciones1.reservaConfirmada(reserva.getInquilino(), reserva.getInmueble());
         } catch (Exception e) {
-            System.err.println("⚠️ Error al notificar aceptación: " + e.getMessage());
+            System.err.println("Error al notificar aceptación: " + e.getMessage());
         }
 
         return "redirect:/misReservas/propietario";
     }
 
-    // ===============================
-    // 🔹 PROPIETARIO RECHAZA RESERVA
-    // ===============================
     @GetMapping("/rechazar/{id}")
     public String rechazarReserva(@PathVariable Long id, @SessionAttribute("usuario") Propietario propietario) {
 
         Reserva reserva = reservaDAO.findById(id).orElse(null);
         if (reserva == null) return "redirect:/misReservas/propietario";
 
+        // Cambiar estado a RECHAZADA
         reserva.setEstado(EstadoReserva.RECHAZADA);
+
+        // 🔹 Devolver dinero (marcar pagado=false)
+        procesarDevolucion(reserva);
+
         reservaDAO.save(reserva);
 
         try {
             gestorNotificaciones1.reservaRechazada(reserva.getInquilino(), reserva.getInmueble());
         } catch (Exception e) {
-            System.err.println("⚠️ Error al notificar rechazo: " + e.getMessage());
+            System.err.println("Error al notificar rechazo: " + e.getMessage());
         }
 
         return "redirect:/misReservas/propietario";
     }
 
-    // ===============================
-    // 🔹 CANCELAR / ELIMINAR RESERVA
-    // ===============================
+    
     @GetMapping("/eliminar/{id}")
     public String eliminarReserva(@PathVariable Long id, @SessionAttribute("usuario") Usuario usuario) {
 
@@ -151,8 +136,7 @@ public class GestorReservas {
                 gestorNotificaciones1.reservaCanceladaPorInquilino(
                         reserva.getInmueble().getPropietario(),
                         reserva.getInmueble(),
-                        inquilino
-                );
+                        inquilino);
                 reservaDAO.delete(reserva);
                 return "redirect:/misReservas";
             }
@@ -161,17 +145,25 @@ public class GestorReservas {
                 gestorNotificaciones1.reservaCanceladaPorPropietario(
                         reserva.getInquilino(),
                         reserva.getInmueble(),
-                        propietario
-                );
+                        propietario);
                 reservaDAO.delete(reserva);
                 return "redirect:/misReservas/propietario";
             }
 
         } catch (Exception e) {
-            System.err.println("⚠️ Error al notificar cancelación: " + e.getMessage());
+            System.err.println("Error al notificar cancelación: " + e.getMessage());
         }
 
         return "redirect:/misReservas";
     }
 
+    private void procesarDevolucion(Reserva reserva) {
+        if (reserva == null) return;
+
+        // Marcar como no pagado para simular devolución
+        reserva.setPagado(false);
+
+        System.out.println("💰 Dinero devuelto al inquilino por reserva " + reserva.getId());
+    }
 }
+
