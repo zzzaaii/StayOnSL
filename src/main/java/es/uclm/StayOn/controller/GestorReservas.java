@@ -107,7 +107,7 @@ public class GestorReservas {
         // Cambiar estado a RECHAZADA
         reserva.setEstado(EstadoReserva.RECHAZADA);
 
-        // 🔹 Devolver dinero (marcar pagado=false)
+        //  Devolver dinero (marcar pagado=false)
         procesarDevolucion(reserva);
 
         reservaDAO.save(reserva);
@@ -163,7 +163,7 @@ public class GestorReservas {
         // Marcar como no pagado para simular devolución
         reserva.setPagado(false);
 
-        System.out.println("💰 Dinero devuelto al inquilino por reserva " + reserva.getId());
+        System.out.println(" Dinero devuelto al inquilino por reserva " + reserva.getId());
     }
 }
 
