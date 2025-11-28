@@ -18,11 +18,18 @@
     <packaging>war</packaging>
     <name>StayOn</name>
     <description>Demo project for Spring Boot</description>
-
-    <properties>
-        <java.version>21</java.version>
-    </properties>
-
+    
+	<properties>
+    <java.version>21</java.version>
+    <start-class>es.uclm.StayOn.StayOnApplication</start-class> 
+    
+    <sonar.projectKey>stayonsl1_StayOnSL</sonar.projectKey> 
+    <sonar.organization>stayonsl1</sonar.organization> 
+    <sonar.host.url>https://sonarcloud.io</sonar.host.url> 
+    
+    <sonar.login>6203881d90686f75d0687c482c37f2106cdee824</sonar.login> 
+	</properties>
+   
     <dependencies>
         <!-- Spring Boot Web & Thymeleaf -->
         <dependency>
