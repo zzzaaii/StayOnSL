@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -18,18 +18,23 @@
     <packaging>war</packaging>
     <name>StayOn</name>
     <description>Demo project for Spring Boot</description>
-    
-	<properties>
-    <java.version>21</java.version>
-    <start-class>es.uclm.StayOn.StayOnApplication</start-class> 
-    
-    <sonar.projectKey>stayonsl1_StayOnSL</sonar.projectKey> 
-    <sonar.organization>stayonsl1</sonar.organization> 
-    <sonar.host.url>https://sonarcloud.io</sonar.host.url> 
-    
-    <sonar.login>6203881d90686f75d0687c482c37f2106cdee824</sonar.login> 
-	</properties>
-   
+
+    <properties>
+        <java.version>21</java.version>
+        <start-class>es.uclm.StayOn.StayOnApplication</start-class>
+
+        <!-- SonarCloud -->
+        <sonar.projectKey>stayonsl1_StayOnSL</sonar.projectKey>
+        <sonar.organization>stayonsl1</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.login>6203881d90686f75d0687c482c37f2106cdee824</sonar.login>
+
+        <!-- Integración JaCoCo + Sonar (Práctica 6) -->
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+        <sonar.jacoco.reportPath>${project.basedir}/target/jacoco.exec</sonar.jacoco.reportPath>
+    </properties>
+
     <dependencies>
         <!-- Spring Boot Web & Thymeleaf -->
         <dependency>
@@ -40,7 +45,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        
+
         <!-- Tomcat como provided -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -64,12 +69,16 @@
             <artifactId>derbytools</artifactId>
         </dependency>
 
-        <!-- Testing -->
+        <!-- Testing Spring Boot (incluye JUnit Jupiter, Mockito, etc.) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- NO añadimos junit-platform-launcher ni junit-jupiter extra
+             para no romper la versión que gestiona Spring Boot / Surefire
+             (Las versiones 6.0.1 que venian en los pdf guia generaban errores de incompatibilidad de versiones) -->
     </dependencies>
 
     <build>
@@ -89,8 +98,90 @@
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
+
+            <!-- Maven Site (para generar target/site) – Práctica 6 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.12.1</version>
+            </plugin>
+
+            <!-- Surefire: ejecución de tests con JUnit Platform -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.4</version>
+                <configuration>
+                    <!-- Recomendado con Java 21 + JUnit -->
+                    <useModulePath>false</useModulePath>
+                </configuration>
+            </plugin>
+
+            <!-- JaCoCo para cobertura (ejecuta el agente y genera informe) -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.11</version>
+                <executions>
+                    <execution>
+                        <id>jacoco-initialize</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>jacoco-site</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
-</project>
+    <!-- Reporting: Surefire, JXR, JaCoCo, info del proyecto – Práctica 6 -->
+    <reporting>
+        <plugins>
+            <!-- Información general del proyecto -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>3.4.5</version>
+            </plugin>
 
+            <!-- Informe de resultados de los tests (Surefire) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>3.2.2</version>
+                <configuration>
+                    <skipEmptyReport>false</skipEmptyReport>
+                </configuration>
+            </plugin>
+
+            <!-- Referencias cruzadas al código fuente -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
+                <version>3.3.1</version>
+            </plugin>
+
+            <!-- Informe HTML de cobertura JaCoCo -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.11</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
+
+</project>
