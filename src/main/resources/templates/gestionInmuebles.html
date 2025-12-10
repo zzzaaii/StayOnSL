@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -128,7 +128,8 @@
                 <th>Dirección</th>
                 <th>Ciudad</th>
                 <th>Precio por Noche (€)</th>
-                <th>Reserva</th> <!-- 🔵 NUEVA COLUMNA -->
+                <th>Reserva</th>
+                <th>Política</th> <!-- NUEVA COLUMNA -->
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -138,13 +139,26 @@
                 <td th:text="${inmueble.ciudad}"></td>
                 <td th:text="${#numbers.formatDecimal(inmueble.precioPorNoche, 1, 'POINT', 2, 'POINT')}"></td>
 
-                <!-- 🔵 MOSTRAR DIRECTA / INDIRECTA -->
+                <!-- MOSTRAR DIRECTA / INDIRECTA -->
                 <td>
                     <span th:text="${
                         inmueble.disponibilidad == null ?
                         'Sin definir' :
                         (inmueble.disponibilidad.directa ? 'Directa' : 'Indirecta')
                     }"></span>
+                </td>
+
+                <!-- MOSTRAR POLÍTICA EN TEXTO NORMAL -->
+                <td>
+                    <span th:if="${inmueble.disponibilidad == null}">Sin definir</span>
+                    <span th:if="${inmueble.disponibilidad != null}"
+                          th:text="${
+                              inmueble.disponibilidad.politicaCancelacion == null ? 'Sin definir' :
+                              (inmueble.disponibilidad.politicaCancelacion.name() == 'NO_REEMBOLSABLE'      ? 'No reembolsable'     :
+                              (inmueble.disponibilidad.politicaCancelacion.name() == 'REEMBOLSABLE'         ? 'Reembolsable 100%'   :
+                              (inmueble.disponibilidad.politicaCancelacion.name() == 'REEMBOLSABLE_50_PER'  ? 'Reembolsable 50%'    :
+                                                                                                             'Sin definir')))
+                          }"></span>
                 </td>
 
                 <td>
@@ -158,5 +172,3 @@
 </main>
 </body>
 </html>
-
-

@@ -1,24 +1,27 @@
 package es.uclm.StayOn.entity;
+
 import jakarta.persistence.*;
+import java.util.Date;
 import java.util.UUID;
 
 @Entity
 public class Pago {
-	@Id
+
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
     private MetodoPago metodo;
 
-    // Referencia única del pago 
-    private String referencia; 
+    // Referencia única del pago
+    private String referencia;
 
     @OneToOne
     @JoinColumn(name = "reserva_id")
     private Reserva reserva;
 
-  //NO SE GUARDAN EN LA BASE DE DATOS
+    // NO SE GUARDAN EN LA BASE DE DATOS
     @Transient
     private String numeroTarjeta;
     @Transient
@@ -28,6 +31,15 @@ public class Pago {
     @Transient
     private String emailPaypal;
 
+    // 🔵 NUEVOS CAMPOS: información de reembolso
+    private boolean reembolsado = false;
+
+    private Double importeReembolsado;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date fechaReembolso;
+
+    // ---------- GETTERS / SETTERS ----------
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -52,5 +64,13 @@ public class Pago {
 
     public String getEmailPaypal() { return emailPaypal; }
     public void setEmailPaypal(String emailPaypal) { this.emailPaypal = emailPaypal; }
-}
 
+    public boolean isReembolsado() { return reembolsado; }
+    public void setReembolsado(boolean reembolsado) { this.reembolsado = reembolsado; }
+
+    public Double getImporteReembolsado() { return importeReembolsado; }
+    public void setImporteReembolsado(Double importeReembolsado) { this.importeReembolsado = importeReembolsado; }
+
+    public Date getFechaReembolso() { return fechaReembolso; }
+    public void setFechaReembolso(Date fechaReembolso) { this.fechaReembolso = fechaReembolso; }
+}

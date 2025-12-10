@@ -162,6 +162,26 @@
             <input type="checkbox" th:field="*{disponibilidad.directa}" />
         </div>
 
+        <!-- POLÍTICA DE CANCELACIÓN CORREGIDA -->
+        <div>
+            <label>Política de cancelación:</label>
+            <select th:field="*{disponibilidad.politicaCancelacion}">
+                <option value="">-- Selecciona una política --</option>
+
+                <option th:value="${T(es.uclm.StayOn.entity.PoliticaCancelacion).NO_REEMBOLSABLE}">
+                    No reembolsable
+                </option>
+
+                <option th:value="${T(es.uclm.StayOn.entity.PoliticaCancelacion).REEMBOLSABLE_50_PER}">
+                    Reembolsable 50%
+                </option>
+
+                <option th:value="${T(es.uclm.StayOn.entity.PoliticaCancelacion).REEMBOLSABLE_100_PER}">
+                    Reembolsable 100%
+                </option>
+            </select>
+        </div>
+
         <button type="submit">Guardar</button>
     </form>
 </main>

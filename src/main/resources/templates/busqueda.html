@@ -42,6 +42,22 @@
             opacity: 0.9;
         }
 
+        /* 🔵 Botón "Volver al menú" */
+        header a {
+            text-decoration: none;
+            background-color: #112d4e;
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 1rem;
+            transition: 0.3s;
+        }
+
+        header a:hover {
+            background-color: #0b2542;
+        }
+
         /* --- CONTENEDOR PRINCIPAL --- */
         main {
             width: 85%;
@@ -92,7 +108,6 @@
             align-items: center;
             gap: 0.5rem;
             justify-content: center;
-            grid-column: span 2;
         }
 
         input[type="checkbox"] {
@@ -189,6 +204,8 @@
 <header>
     <h1>🏠 StayOn - Buscar Alojamiento</h1>
     <p>Explora los mejores alojamientos disponibles</p>
+    <!-- 🔵 Botón para volver al menú de inquilino -->
+    <a th:href="@{/inicioInquilino}">Volver al menú</a>
 </header>
 
 <main>
@@ -224,9 +241,21 @@
             <input type="number" name="precioMax" step="0.01" min="0">
         </div>
 
+        <!-- Filtro reserva inmediata -->
         <div class="checkbox-container">
             <label for="directa">Reserva inmediata:</label>
-            <input type="checkbox" name="directa">
+            <input type="checkbox" name="directa" id="directa">
+        </div>
+
+        <!-- Filtro política cancelación -->
+        <div>
+            <label>Política de cancelación:</label>
+            <select name="politica">
+                <option value="">-- Cualquier política --</option>
+                <option value="NO_REEMBOLSABLE">No reembolsable</option>
+                <option value="REEMBOLSABLE_50_PER">Reembolsable 50%</option>
+                <option value="REEMBOLSABLE_100_PER">Reembolsable 100%</option>
+            </select>
         </div>
 
         <button type="submit">🔍 Buscar</button>
@@ -242,11 +271,42 @@
         <div th:each="inmueble : ${resultados}" class="property-card">
             <h3 th:text="${inmueble.tipo} + ' en ' + ${inmueble.ciudad}">Vivienda en Ciudad</h3>
             <p th:text="${inmueble.descripcion}">Descripción del inmueble...</p>
-            <p class="property-price" th:text="${#numbers.formatDecimal(inmueble.precioPorNoche, 1, 'POINT', 2, 'COMMA')} + ' €/noche'">Precio</p>
-			<div class="property-actions">
-			    <a th:href="@{'/reservar/' + ${inmueble.id}}" class="btn-action">Reservar</a>
-			    <a href="#" class="btn-action btn-wishlist">❤️ Deseos</a>
-			</div>
+            <p class="property-price"
+               th:text="${#numbers.formatDecimal(inmueble.precioPorNoche, 1, 'POINT', 2, 'COMMA')} + ' €/noche'">
+                Precio
+            </p>
+
+            <!-- Tipo de reserva -->
+            <p>
+                <strong>Tipo de reserva:</strong>
+                <span th:text="${inmueble.disponibilidad != null and inmueble.disponibilidad.directa} ?
+                                'Reserva inmediata' :
+                                'Reserva con solicitud'">
+                </span>
+            </p>
+
+            <!-- Política de cancelación -->
+            <p>
+                <strong>Política:</strong>
+                <span th:if="${inmueble.disponibilidad == null 
+                              or inmueble.disponibilidad.politicaCancelacion == null}">
+                    Sin definir
+                </span>
+                <span th:if="${inmueble.disponibilidad != null 
+                              and inmueble.disponibilidad.politicaCancelacion != null}"
+                      th:switch="${inmueble.disponibilidad.politicaCancelacion.name()}">
+                    <span th:case="'NO_REEMBOLSABLE'">No reembolsable</span>
+                    <span th:case="'REEMBOLSABLE_50_PER'">Reembolsable 50%</span>
+                    <span th:case="'REEMBOLSABLE_100_PER'">Reembolsable 100%</span>
+                    <span th:case="*"
+                          th:text="${inmueble.disponibilidad.politicaCancelacion}">Otra</span>
+                </span>
+            </p>
+
+            <div class="property-actions">
+                <a th:href="@{'/reservar/' + ${inmueble.id}}" class="btn-action">Reservar</a>
+                <a href="#" class="btn-action btn-wishlist">❤️ Deseos</a>
+            </div>
 
         </div>
     </section>

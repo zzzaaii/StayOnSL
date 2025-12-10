@@ -45,7 +45,7 @@
   <p><strong>Hasta:</strong> <span th:text="${#dates.format(reserva.fechaFin, 'dd/MM/yyyy')}"></span></p>
   <p><strong>Total:</strong> <span th:text="${#numbers.formatDecimal(total, 1, 'POINT', 2, 'COMMA')}"></span> €</p>
 
-  <!-- 🔵 Mensaje según sea directa o por solicitud -->
+  <!--  Tipo de reserva -->
   <p th:if="${inmueble.disponibilidad != null and inmueble.disponibilidad.directa}">
       Tu reserva es <strong>directa</strong> y ha sido <strong>aceptada automáticamente</strong>.<br>
       Puedes ir a <em>Mis Reservas</em> para realizar el pago.
@@ -53,6 +53,20 @@
   <p th:if="${inmueble.disponibilidad == null or !inmueble.disponibilidad.directa}">
       Tu reserva está <strong>pendiente de aceptación</strong> por parte del propietario.<br>
       Cuando la acepte, podrás pagarla desde <em>Mis Reservas</em>.
+  </p>
+
+  <!--  Política de cancelación -->
+  <p>
+      <strong>Política de cancelación:</strong>
+      <span th:if="${inmueble.disponibilidad == null or inmueble.disponibilidad.politicaCancelacion == null}">Sin definir</span>
+      <span th:if="${inmueble.disponibilidad != null and inmueble.disponibilidad.politicaCancelacion != null}"
+            th:switch="${inmueble.disponibilidad.politicaCancelacion.name()}">
+          <span th:case="'NO_REEMBOLSABLE'">No reembolsable</span>
+          <span th:case="'REEMBOLSABLE_50_PER'">Reembolsable 50%</span>
+          <span th:case="'REEMBOLSABLE_100_PER'">Reembolsable 100%</span>
+          <span th:case="*"
+                th:text="${inmueble.disponibilidad.politicaCancelacion}">Otra</span>
+      </span>
   </p>
 
   <a th:href="@{/buscarInmuebles}" class="btn">Volver a buscar</a>

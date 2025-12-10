@@ -26,6 +26,10 @@ public class Disponibilidad {
 
     private boolean directa; // Reserva inmediata
 
+    // Nueva política de cancelación
+    @Enumerated(EnumType.STRING)
+    private PoliticaCancelacion politicaCancelacion = PoliticaCancelacion.NO_REEMBOLSABLE;
+
     @ManyToOne
     @JoinColumn(name = "inmueble_id")
     private Inmueble inmueble;
@@ -37,6 +41,8 @@ public class Disponibilidad {
     public void setId(Long id) { this.id = id; }
 
     public Date getFechaInicio() { return fechaInicio; }
+
+    // corregido: usar el parámetro
     public void setFechaInicio(Date fechaInicio) { this.fechaInicio = fechaInicio; }
 
     public Date getFechaFin() { return fechaFin; }
@@ -50,6 +56,14 @@ public class Disponibilidad {
 
     public Inmueble getInmueble() { return inmueble; }
     public void setInmueble(Inmueble inmueble) { this.inmueble = inmueble; }
+
+    public PoliticaCancelacion getPoliticaCancelacion() {
+        return politicaCancelacion;
+    }
+
+    public void setPoliticaCancelacion(PoliticaCancelacion politicaCancelacion) {
+        this.politicaCancelacion = politicaCancelacion;
+    }
 
     // ======= Nuevo método auxiliar =======
     @Transient
@@ -71,4 +85,3 @@ public class Disponibilidad {
         return inmueble.getPrecioPorNoche() * noches;
     }
 }
-
