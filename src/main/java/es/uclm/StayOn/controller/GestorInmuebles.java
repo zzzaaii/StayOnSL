@@ -36,15 +36,16 @@ public class GestorInmuebles {
 
     @GetMapping("/nuevo")
     public String nuevoInmueble(Model model) {
-        model.addAttribute("inmueble", new Inmueble());
-        model.addAttribute("disponibilidad", new Disponibilidad());
+        Inmueble inmueble = new Inmueble();
+        // Creamos una disponibilidad asociada para que Thymeleaf pueda enlazar los campos
+        inmueble.setDisponibilidad(new Disponibilidad());
+        model.addAttribute("inmueble", inmueble);
         return "forminmueble";
     }
 
     @PostMapping("/guardar")
     public String guardarInmueble(@ModelAttribute Inmueble inmueble,
-                                  @SessionAttribute("usuario") Propietario propietario,
-                                  @ModelAttribute("disponibilidad") Disponibilidad disponibilidad) {
+                                  @SessionAttribute("usuario") Propietario propietario) {
 
         boolean esNuevo = (inmueble.getId() == null);
 
@@ -54,8 +55,12 @@ public class GestorInmuebles {
         if (inmueble.getPrecioPorNoche() == null) inmueble.setPrecioPorNoche(0.1);
 
         inmueble.setPropietario(propietario);
+
+        // Guardamos primero el inmueble
         inmuebleDAO.save(inmueble);
 
+        // Guardamos la disponibilidad anidada si tiene fechas
+        Disponibilidad disponibilidad = inmueble.getDisponibilidad();
         if (disponibilidad != null && disponibilidad.getFechaInicio() != null && disponibilidad.getFechaFin() != null) {
             disponibilidad.setInmueble(inmueble);
             disponibilidadDAO.save(disponibilidad);
@@ -81,9 +86,14 @@ public class GestorInmuebles {
             return "redirect:/gestionInmuebles";
         }
 
-        model.addAttribute("inmueble", optionalInmueble.get());
-        List<Disponibilidad> disponibilidades = disponibilidadDAO.findByInmueble(optionalInmueble.get());
-        model.addAttribute("disponibilidad", disponibilidades.isEmpty() ? new Disponibilidad() : disponibilidades.get(0));
+        Inmueble inmueble = optionalInmueble.get();
+
+        // Si no tiene disponibilidad, creamos una nueva para el formulario
+        if (inmueble.getDisponibilidad() == null) {
+            inmueble.setDisponibilidad(new Disponibilidad());
+        }
+
+        model.addAttribute("inmueble", inmueble);
 
         return "forminmueble";
     }

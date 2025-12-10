@@ -9,6 +9,7 @@ import es.uclm.StayOn.entity.Inmueble;
 import es.uclm.StayOn.entity.Inquilino;
 import es.uclm.StayOn.entity.Reserva;
 import es.uclm.StayOn.entity.Reserva.EstadoReserva;
+import es.uclm.StayOn.entity.PoliticaCancelacion;   // ✅ IMPORTANTE
 import es.uclm.StayOn.persistence.InmuebleDAO;
 import es.uclm.StayOn.persistence.ReservaDAO;
 
@@ -44,6 +45,7 @@ public class GestorBusquedas {
             @RequestParam(required = false, defaultValue = "false") boolean directa,
             @RequestParam(required = false) String fechaInicio,
             @RequestParam(required = false) String fechaFin,
+            @RequestParam(required = false) PoliticaCancelacion politica,   // ✅ NUEVO PARAMETRO
             Model model) {
 
         Date fechaInicioDate = null;
@@ -64,6 +66,7 @@ public class GestorBusquedas {
                 .filter(i -> i.getTipo() != null || i.getCiudad() != null)
                 .collect(Collectors.toList());
 
+        // 🔹 Filtro por destino (ciudad o dirección)
         if (destino != null && !destino.trim().isEmpty()) {
             String destinoLower = destino.toLowerCase();
             resultados = resultados.stream()
@@ -72,24 +75,38 @@ public class GestorBusquedas {
                     .collect(Collectors.toList());
         }
 
+        // 🔹 Filtro por tipo
         if (tipo != null && !tipo.trim().isEmpty()) {
             resultados = resultados.stream()
                     .filter(i -> i.getTipo() != null && i.getTipo().equalsIgnoreCase(tipo))
                     .collect(Collectors.toList());
         }
 
+        // 🔹 Filtro por precio máximo
         if (precioMax != null && precioMax > 0) {
             resultados = resultados.stream()
                     .filter(i -> i.getPrecioPorNoche() != null && i.getPrecioPorNoche() <= precioMax)
                     .collect(Collectors.toList());
         }
 
+        // 🔹 Filtro por reserva inmediata (directa)
         if (directa) {
             resultados = resultados.stream()
                     .filter(i -> i.getDisponibilidad() != null && i.getDisponibilidad().isDirecta())
                     .collect(Collectors.toList());
         }
 
+        // 🔹 Filtro por política de cancelación (NUEVO)
+        if (politica != null) {
+            final PoliticaCancelacion politicaSeleccionada = politica;
+            resultados = resultados.stream()
+                    .filter(i -> i.getDisponibilidad() != null
+                            && i.getDisponibilidad().getPoliticaCancelacion() != null
+                            && i.getDisponibilidad().getPoliticaCancelacion().equals(politicaSeleccionada))
+                    .collect(Collectors.toList());
+        }
+
+        // 🔹 Filtro por rango de fechas
         final Date fInicio = fechaInicioDate;
         final Date fFin = fechaFinDate;
         if (fInicio != null && fFin != null) {
@@ -129,23 +146,20 @@ public class GestorBusquedas {
         reserva.setInquilino(inquilino);
         reserva.setInmueble(inmueble);
 
-        // 🔵 AQUÍ va la lógica de DIRECTA / PENDIENTE
+        // DIRECTA / PENDIENTE
         boolean esDirecta = inmueble.getDisponibilidad() != null
                 && inmueble.getDisponibilidad().isDirecta();
 
         if (esDirecta) {
-            // Reserva directa: el propietario no tiene que aceptar
             reserva.setEstado(EstadoReserva.ACEPTADA);
             reserva.setPagado(false);
         } else {
-            // Reserva por solicitud: queda pendiente hasta que el propietario acepte
             reserva.setEstado(EstadoReserva.PENDIENTE);
             reserva.setPagado(false);
         }
 
         reservaDAO.save(reserva);
 
-        // Notificaciones genéricas que ya tenías
         gestorNotificaciones.enviar(inquilino, "RESERVA_REALIZADA",
                 "📝 Has realizado una reserva en " + inmueble.getDireccion());
         gestorNotificaciones.enviar(inmueble.getPropietario(), "RESERVA_RECIBIDA",
@@ -154,11 +168,8 @@ public class GestorBusquedas {
         model.addAttribute("inmueble", inmueble);
         model.addAttribute("reserva", reserva);
         model.addAttribute("total", reserva.getPrecioTotal());
-        // por si quieres usarlo en la vista:
         model.addAttribute("esDirecta", esDirecta);
 
         return "reservaConfirmada";
     }
 }
-
-

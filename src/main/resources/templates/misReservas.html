@@ -22,10 +22,35 @@
         .btn-action { text-decoration: none; color: #3f72af; font-weight: bold; }
         .btn-action:hover { text-decoration: underline; }
 
-        .btn-pay { background-color: #4CAF50; color: white; padding: 0.5rem 1rem; border-radius: 8px; border: none; cursor: pointer; transition: 0.3s; text-decoration: none; }
+        .btn-pay { background-color: #4CAF50; color: white; padding: 0.5rem 1rem; border-radius: 8px; border: none; cursor: pointer; transition: 0.3s; text-decoration: none; display: inline-block; }
         .btn-pay:hover { background-color: #3e8e41; }
 
         .btn-disabled { background-color: #ccc; color: #666; padding: 0.5rem 1rem; border-radius: 8px; border: none; cursor: not-allowed; }
+
+        /*  contenedor de acciones */
+        .acciones-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        /*  botón cancelar con reembolso */
+        .btn-cancel {
+            background-color: #e74c3c;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-cancel:hover {
+            background-color: #c0392b;
+        }
     </style>
 </head>
 
@@ -48,6 +73,7 @@
             <th>Fecha Fin</th>
             <th>Precio Total (€)</th>
             <th>Estado</th>
+            <th>Política</th>
             <th>Acciones</th>
         </tr>
         </thead>
@@ -63,28 +89,49 @@
 
             <td th:text="${#numbers.formatDecimal(reserva.precioTotal, 1, 'COMMA', 2, 'POINT')}"></td>
 
-            <!-- MOSTRAMOS EL ENUM COMO TEXTO -->
+            <!-- ESTADO ENUM COMO TEXTO -->
             <td th:text="${reserva.estado.name()}"></td>
 
+            <!-- POLÍTICA DE CANCELACIÓN -->
             <td>
+                <span th:if="${reserva.inmueble == null 
+                              or reserva.inmueble.disponibilidad == null 
+                              or reserva.inmueble.disponibilidad.politicaCancelacion == null}">
+                    Sin definir
+                </span>
+                <span th:if="${reserva.inmueble != null 
+                              and reserva.inmueble.disponibilidad != null 
+                              and reserva.inmueble.disponibilidad.politicaCancelacion != null}"
+                      th:switch="${reserva.inmueble.disponibilidad.politicaCancelacion.name()}">
+                    <span th:case="'NO_REEMBOLSABLE'">No reembolsable</span>
+                    <span th:case="'REEMBOLSABLE_50_PER'">Reembolsable 50%</span>
+                    <span th:case="'REEMBOLSABLE_100_PER'">Reembolsable 100%</span>
+                    <span th:case="*"
+                          th:text="${reserva.inmueble.disponibilidad.politicaCancelacion}">Otra</span>
+                </span>
+            </td>
 
-                <!-- ELIMINAR si no está CONFIRMADA -->
-                <a th:if="${reserva.estado.name() != 'CONFIRMADA'}"
-                   th:href="@{'/misReservas/eliminar/' + ${reserva.id}}"
-                   class="btn-action">Eliminar</a>
-                <span th:if="${reserva.estado.name() != 'CONFIRMADA'}"> | </span>
+            <td>
+                <div class="acciones-cell">
 
-                <!-- BOTÓN PAGAR SOLO SI ESTADO == ACEPTADA -->
-                <a th:if="${reserva.estado.name() == 'ACEPTADA'}"
-                   th:href="@{/pagos/pagar/{reservaId}(reservaId=${reserva.id})}"
-                   class="btn-pay">💳 Pagar</a>
+                    <!-- ELIMINAR si no está CONFIRMADA -->
+                    <a th:if="${reserva.estado.name() != 'CONFIRMADA'}"
+                       th:href="@{'/misReservas/eliminar/' + ${reserva.id}}"
+                       class="btn-action">Eliminar</a>
 
-                <!-- SI YA ESTÁ CONFIRMADA (PAGADA) -->
-                <button th:if="${reserva.estado.name() == 'CONFIRMADA'}"
-                        class="btn-disabled" disabled>
-                    Pagado
-                </button>
+                    <!-- BOTÓN PAGAR SOLO SI ESTADO == ACEPTADA -->
+                    <a th:if="${reserva.estado.name() == 'ACEPTADA'}"
+                       th:href="@{/pagos/pagar/{reservaId}(reservaId=${reserva.id})}"
+                       class="btn-pay">💳 Pagar</a>
 
+                    <!-- 🔵 NUEVO: cancelar y procesar reembolso SOLO si está CONFIRMADA -->
+                    <a th:if="${reserva.estado.name() == 'CONFIRMADA'}"
+                       th:href="@{/pagos/cancelar/{reservaId}(reservaId=${reserva.id})}"
+                       class="btn-cancel">
+                        ❌ Cancelar y reembolsar
+                    </a>
+
+                </div>
             </td>
         </tr>
         </tbody>
@@ -94,5 +141,3 @@
 </main>
 </body>
 </html>
-
-

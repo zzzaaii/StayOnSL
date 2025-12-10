@@ -100,15 +100,29 @@
         <p><strong>Ciudad:</strong> <span th:text="${inmueble.ciudad}"></span></p>
         <p><strong>Dirección:</strong> <span th:text="${inmueble.direccion}"></span></p>
         <p><strong>Descripción:</strong> <span th:text="${inmueble.descripcion}"></span></p>
-        <p><strong>Precio por noche:</strong> 
+        <p><strong>Precio por noche:</strong>
            <span id="precioPorNoche" th:text="${#numbers.formatDecimal(inmueble.precioPorNoche, 1, 'POINT', 2, 'COMMA')}"></span> €</p>
 
-        <!-- 🔵 Tipo de reserva: directa o por solicitud -->
+        <!--  Tipo de reserva: directa o por solicitud -->
         <p>
             <strong>Tipo de reserva:</strong>
             <span th:text="${inmueble.disponibilidad != null and inmueble.disponibilidad.directa} ?
                            'Reserva directa (se acepta automáticamente al reservar)' :
                            'Reserva con solicitud (el propietario debe aceptarla primero)'">
+            </span>
+        </p>
+
+        <!--  D Política de cancelación -->
+        <p>
+            <strong>Política de cancelación:</strong>
+            <span th:if="${inmueble.disponibilidad == null or inmueble.disponibilidad.politicaCancelacion == null}">Sin definir</span>
+            <span th:if="${inmueble.disponibilidad != null and inmueble.disponibilidad.politicaCancelacion != null}"
+                  th:switch="${inmueble.disponibilidad.politicaCancelacion.name()}">
+                <span th:case="'NO_REEMBOLSABLE'">No reembolsable</span>
+                <span th:case="'REEMBOLSABLE_50_PER'">Reembolsable 50%</span>
+                <span th:case="'REEMBOLSABLE_100_PER'">Reembolsable 100%</span>
+                <span th:case="*"
+                      th:text="${inmueble.disponibilidad.politicaCancelacion}">Otra</span>
             </span>
         </p>
     </div>
