@@ -146,6 +146,54 @@ public class GestorBusquedas {
         reserva.setInquilino(inquilino);
         reserva.setInmueble(inmueble);
 
+        //  VALIDACIÓN 0: fechas obligatorias
+        if (reserva.getFechaInicio() == null || reserva.getFechaFin() == null) {
+            model.addAttribute("error", "Debes seleccionar fecha de inicio y fin.");
+            model.addAttribute("inmueble", inmueble);
+            model.addAttribute("reserva", reserva);
+            return "formularioReserva";
+        }
+
+        //  VALIDACIÓN 1: inicio < fin
+        if (!reserva.getFechaInicio().before(reserva.getFechaFin())) {
+            model.addAttribute("error", "La fecha de fin debe ser posterior a la fecha de inicio.");
+            model.addAttribute("inmueble", inmueble);
+            model.addAttribute("reserva", reserva);
+            return "formularioReserva";
+        }
+
+        //  VALIDACIÓN 2: dentro del rango disponible del propietario
+        if (inmueble.getDisponibilidad() == null
+                || inmueble.getDisponibilidad().getFechaInicio() == null
+                || inmueble.getDisponibilidad().getFechaFin() == null) {
+            model.addAttribute("error", "Este inmueble no tiene un rango de disponibilidad definido.");
+            model.addAttribute("inmueble", inmueble);
+            model.addAttribute("reserva", reserva);
+            return "formularioReserva";
+        }
+
+        Date dispIni = inmueble.getDisponibilidad().getFechaInicio();
+        Date dispFin = inmueble.getDisponibilidad().getFechaFin();
+
+        if (reserva.getFechaInicio().before(dispIni) || reserva.getFechaFin().after(dispFin)) {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+            model.addAttribute("error",
+                    "Esas fechas no están disponibles. Disponible solo de "
+                            + sdf.format(dispIni) + " a " + sdf.format(dispFin) + ".");
+            model.addAttribute("inmueble", inmueble);
+            model.addAttribute("reserva", reserva);
+            return "formularioReserva";
+        }
+
+        //  VALIDACIÓN 3: sin solape con reservas existentes del mismo inmueble
+        boolean solapa = reservaDAO.existsSolapamiento(inmueble.getId(), reserva.getFechaInicio(), reserva.getFechaFin());
+        if (solapa) {
+            model.addAttribute("error", "Esas fechas ya están reservadas. Elige otras fechas.");
+            model.addAttribute("inmueble", inmueble);
+            model.addAttribute("reserva", reserva);
+            return "formularioReserva";
+        }
+
         // DIRECTA / PENDIENTE
         boolean esDirecta = inmueble.getDisponibilidad() != null
                 && inmueble.getDisponibilidad().isDirecta();
@@ -172,4 +220,5 @@ public class GestorBusquedas {
 
         return "reservaConfirmada";
     }
+
 }
