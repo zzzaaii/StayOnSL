@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Mis Deseos - StayOn</title>
+  <link rel="stylesheet" th:href="@{/css/estilos.css}">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f7fa;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    header {
+      background-color: #3f72af;
+      color: white;
+      text-align: center;
+      padding: 2rem 4rem;
+      width: 60%;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      margin-top: 3rem;
+    }
+
+    header a {
+      text-decoration: none;
+      background-color: #112d4e;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      display: inline-block;
+      margin-top: 1rem;
+    }
+
+    main {
+      width: 85%;
+      max-width: 1100px;
+      margin-top: 2.5rem;
+      background-color: white;
+      border-radius: 15px;
+      padding: 2rem 3rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .card {
+      background-color: #f8f9fc;
+      padding: 1.2rem;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+      margin-bottom: 1.2rem;
+    }
+
+    .btn {
+      text-decoration: none;
+      background-color: #3f72af;
+      color: white;
+      padding: 0.5rem 1.2rem;
+      border-radius: 8px;
+      margin-right: 0.5rem;
+      display: inline-block;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-danger {
+      background-color: #ff5a5f;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>❤️ Mis Deseos</h1>
+  <p>Lista de alojamientos guardados</p>
+  <a th:href="@{/inicioInquilino}">Volver al menú</a>
+</header>
+
+<main>
+
+  <div th:if="${#lists.isEmpty(deseos)}">
+    <p>No tienes inmuebles en tu lista de deseos.</p>
+    <a th:href="@{/buscarInmuebles}" class="btn">Ir a buscar</a>
+  </div>
+
+  <div th:each="d : ${deseos}" class="card">
+    <h3 th:text="${d.inmueble.tipo} + ' en ' + ${d.inmueble.ciudad}">Tipo en Ciudad</h3>
+    <p><b>Dirección:</b> <span th:text="${d.inmueble.direccion}">Dirección</span></p>
+    <p><b>Descripción:</b> <span th:text="${d.inmueble.descripcion}">Descripción</span></p>
+    <p><b>Precio/noche:</b>
+      <span th:text="${#numbers.formatDecimal(d.inmueble.precioPorNoche, 1, 'POINT', 2, 'COMMA')} + ' €'">0 €</span>
+    </p>
+
+    <div style="margin-top:0.8rem;">
+      <a th:href="@{'/reservar/' + ${d.inmueble.id}}" class="btn">Reservar</a>
+
+      <form th:action="@{/deseos/remove}" method="post" style="display:inline;">
+        <input type="hidden" name="inmuebleId" th:value="${d.inmueble.id}">
+        <button type="submit" class="btn btn-danger">Quitar</button>
+      </form>
+    </div>
+  </div>
+
+</main>
+
+</body>
+</html>
