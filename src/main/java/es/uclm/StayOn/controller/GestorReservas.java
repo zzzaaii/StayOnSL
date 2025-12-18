@@ -13,6 +13,7 @@ import es.uclm.StayOn.entity.Usuario;
 import es.uclm.StayOn.entity.Inmueble;
 
 import es.uclm.StayOn.persistence.ReservaDAO;
+import java.util.Date;
 
 import java.util.List;
 
@@ -50,6 +51,33 @@ public class GestorReservas {
         reserva.setInquilino(inquilino);
         Inmueble inmueble = reserva.getInmueble();
 
+        // ✅ VALIDACIÓN mínima (sin tocar más lógica de reservas)
+        if (inmueble == null || inmueble.getId() == null || reserva.getFechaInicio() == null || reserva.getFechaFin() == null) {
+            return "redirect:/misReservas";
+        }
+
+        if (!reserva.getFechaInicio().before(reserva.getFechaFin())) {
+            return "redirect:/misReservas";
+        }
+
+        if (inmueble.getDisponibilidad() == null
+                || inmueble.getDisponibilidad().getFechaInicio() == null
+                || inmueble.getDisponibilidad().getFechaFin() == null) {
+            return "redirect:/misReservas";
+        }
+
+        Date dispIni = inmueble.getDisponibilidad().getFechaInicio();
+        Date dispFin = inmueble.getDisponibilidad().getFechaFin();
+
+        if (reserva.getFechaInicio().before(dispIni) || reserva.getFechaFin().after(dispFin)) {
+            return "redirect:/misReservas";
+        }
+
+        boolean solapa = reservaDAO.existsSolapamiento(inmueble.getId(), reserva.getFechaInicio(), reserva.getFechaFin());
+        if (solapa) {
+            return "redirect:/misReservas";
+        }
+
         if (inmueble != null && inmueble.getDisponibilidad() != null && inmueble.getDisponibilidad().isDirecta()) {
             reserva.setEstado(EstadoReserva.ACEPTADA);
         } else {
@@ -68,6 +96,7 @@ public class GestorReservas {
 
         return "redirect:/misReservas";
     }
+
 
     @GetMapping("/aceptar/{id}")
     public String aceptarReserva(@PathVariable Long id, @SessionAttribute("usuario") Propietario propietario) {

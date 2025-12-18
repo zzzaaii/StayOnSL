@@ -88,6 +88,17 @@
             display: block;
             margin-top: 1rem;
         }
+
+        /* ✅ Mensaje error */
+        .alert-error{
+            background:#ffe6e6;
+            border:1px solid #ffb3b3;
+            color:#8a1f1f;
+            padding: 0.9rem 1rem;
+            border-radius: 10px;
+            margin: 0.6rem 0 1rem 0;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -101,9 +112,9 @@
         <p><strong>Dirección:</strong> <span th:text="${inmueble.direccion}"></span></p>
         <p><strong>Descripción:</strong> <span th:text="${inmueble.descripcion}"></span></p>
         <p><strong>Precio por noche:</strong>
-           <span id="precioPorNoche" th:text="${#numbers.formatDecimal(inmueble.precioPorNoche, 1, 'POINT', 2, 'COMMA')}"></span> €</p>
+            <span id="precioPorNoche" th:text="${#numbers.formatDecimal(inmueble.precioPorNoche, 1, 'POINT', 2, 'COMMA')}"></span> €
+        </p>
 
-        <!--  Tipo de reserva: directa o por solicitud -->
         <p>
             <strong>Tipo de reserva:</strong>
             <span th:text="${inmueble.disponibilidad != null and inmueble.disponibilidad.directa} ?
@@ -112,7 +123,6 @@
             </span>
         </p>
 
-        <!--  D Política de cancelación -->
         <p>
             <strong>Política de cancelación:</strong>
             <span th:if="${inmueble.disponibilidad == null or inmueble.disponibilidad.politicaCancelacion == null}">Sin definir</span>
@@ -127,17 +137,28 @@
         </p>
     </div>
 
+    <!-- ✅ ERROR SI HAY PROBLEMA DE FECHAS -->
+    <div class="alert-error" th:if="${error}" th:text="${error}"></div>
+
     <form th:action="@{/confirmarReserva}" method="post" th:object="${reserva}">
         <input type="hidden" th:value="${inmueble.id}" name="inmuebleId"/>
 
         <div>
             <label>Fecha inicio:</label>
-            <input type="date" th:field="*{fechaInicio}" required>
+            <input type="date"
+                   th:field="*{fechaInicio}"
+                   required
+                   th:attr="min=${inmueble.disponibilidad != null ? #dates.format(inmueble.disponibilidad.fechaInicio,'yyyy-MM-dd') : null},
+                            max=${inmueble.disponibilidad != null ? #dates.format(inmueble.disponibilidad.fechaFin,'yyyy-MM-dd') : null}">
         </div>
 
         <div>
             <label>Fecha fin:</label>
-            <input type="date" th:field="*{fechaFin}" required>
+            <input type="date"
+                   th:field="*{fechaFin}"
+                   required
+                   th:attr="min=${inmueble.disponibilidad != null ? #dates.format(inmueble.disponibilidad.fechaInicio,'yyyy-MM-dd') : null},
+                            max=${inmueble.disponibilidad != null ? #dates.format(inmueble.disponibilidad.fechaFin,'yyyy-MM-dd') : null}">
         </div>
 
         <p class="precio-total">Total estimado: <span id="precioTotal">-</span> €</p>
