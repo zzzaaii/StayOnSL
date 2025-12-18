@@ -15,7 +15,6 @@
             min-height: 100vh;
         }
 
-        /* --- BANNER SUPERIOR --- */
         header {
             background-color: #3f72af;
             color: white;
@@ -42,7 +41,6 @@
             opacity: 0.9;
         }
 
-        /* 🔵 Botón "Volver al menú" */
         header a {
             text-decoration: none;
             background-color: #112d4e;
@@ -58,7 +56,6 @@
             background-color: #0b2542;
         }
 
-        /* --- CONTENEDOR PRINCIPAL --- */
         main {
             width: 85%;
             max-width: 1100px;
@@ -72,7 +69,6 @@
             align-items: center;
         }
 
-        /* --- FORMULARIO --- */
         form {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -132,7 +128,6 @@
             background-color: #2e5c8a;
         }
 
-        /* --- RESULTADOS --- */
         .resultados {
             margin-top: 2rem;
             width: 100%;
@@ -184,6 +179,7 @@
             border-radius: 8px;
             margin-right: 0.5rem;
             transition: 0.3s;
+            display: inline-block;
         }
 
         .btn-action:hover {
@@ -197,6 +193,12 @@
         .btn-wishlist:hover {
             background-color: #d94b50;
         }
+
+        /* para que el botón del form parezca el enlace */
+        .wishlist-btn {
+            border: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -204,7 +206,6 @@
 <header>
     <h1>🏠 StayOn - Buscar Alojamiento</h1>
     <p>Explora los mejores alojamientos disponibles</p>
-    <!-- 🔵 Botón para volver al menú de inquilino -->
     <a th:href="@{/inicioInquilino}">Volver al menú</a>
 </header>
 
@@ -241,13 +242,11 @@
             <input type="number" name="precioMax" step="0.01" min="0">
         </div>
 
-        <!-- Filtro reserva inmediata -->
         <div class="checkbox-container">
             <label for="directa">Reserva inmediata:</label>
             <input type="checkbox" name="directa" id="directa">
         </div>
 
-        <!-- Filtro política cancelación -->
         <div>
             <label>Política de cancelación:</label>
             <select name="politica">
@@ -276,7 +275,6 @@
                 Precio
             </p>
 
-            <!-- Tipo de reserva -->
             <p>
                 <strong>Tipo de reserva:</strong>
                 <span th:text="${inmueble.disponibilidad != null and inmueble.disponibilidad.directa} ?
@@ -285,14 +283,13 @@
                 </span>
             </p>
 
-            <!-- Política de cancelación -->
             <p>
                 <strong>Política:</strong>
-                <span th:if="${inmueble.disponibilidad == null 
+                <span th:if="${inmueble.disponibilidad == null
                               or inmueble.disponibilidad.politicaCancelacion == null}">
                     Sin definir
                 </span>
-                <span th:if="${inmueble.disponibilidad != null 
+                <span th:if="${inmueble.disponibilidad != null
                               and inmueble.disponibilidad.politicaCancelacion != null}"
                       th:switch="${inmueble.disponibilidad.politicaCancelacion.name()}">
                     <span th:case="'NO_REEMBOLSABLE'">No reembolsable</span>
@@ -303,9 +300,21 @@
                 </span>
             </p>
 
+            <!-- ✅ AQUÍ está lo de deseos (sin instanceof en thymeleaf) -->
             <div class="property-actions">
                 <a th:href="@{'/reservar/' + ${inmueble.id}}" class="btn-action">Reservar</a>
-                <a href="#" class="btn-action btn-wishlist">❤️ Deseos</a>
+
+                <!-- Si NO hay sesión, que te mande a login -->
+                <a th:if="${session.usuario == null}" th:href="@{/login}" class="btn-action btn-wishlist">
+                    ❤️ Deseos
+                </a>
+
+                <!-- Si hay sesión, hacemos POST real a /deseos/add (tu controlador valida si es Inquilino) -->
+                <form th:if="${session.usuario != null}"
+                      th:action="@{/deseos/add}" method="post" style="display:inline;">
+                    <input type="hidden" name="inmuebleId" th:value="${inmueble.id}">
+                    <button type="submit" class="btn-action btn-wishlist wishlist-btn">❤️ Deseos</button>
+                </form>
             </div>
 
         </div>
