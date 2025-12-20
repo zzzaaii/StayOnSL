@@ -21,7 +21,7 @@ public class Disponibilidad {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date fechaFin;
 
-    // ⚠️ Este precio no se mostrará al propietario, solo se usará internamente
+    //  Este precio no se mostrará al propietario, solo se usará internamente
     private Double precio;
 
     private boolean directa; // Reserva inmediata
@@ -36,13 +36,13 @@ public class Disponibilidad {
 
     public Disponibilidad() {}
 
-    // ======= Getters y Setters =======
+    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
     public Date getFechaInicio() { return fechaInicio; }
 
-    // corregido: usar el parámetro
+    // usar el parámetro
     public void setFechaInicio(Date fechaInicio) { this.fechaInicio = fechaInicio; }
 
     public Date getFechaFin() { return fechaFin; }
@@ -65,7 +65,7 @@ public class Disponibilidad {
         this.politicaCancelacion = politicaCancelacion;
     }
 
-    // ======= Nuevo método auxiliar =======
+    //  Nuevo método auxiliar
     @Transient
     public Double getPrecioTotal() {
         if (fechaInicio == null || fechaFin == null || inmueble == null) {

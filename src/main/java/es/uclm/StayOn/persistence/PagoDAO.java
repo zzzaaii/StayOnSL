@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface PagoDAO extends JpaRepository<Pago, Long> {
 
-    // Historial de pagos de un inquilino (vía reserva.inquilino)
+    // Historial de pagos de un inquilino 
     List<Pago> findByReserva_Inquilino(Inquilino inquilino);
 }

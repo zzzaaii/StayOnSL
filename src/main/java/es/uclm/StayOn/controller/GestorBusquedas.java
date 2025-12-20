@@ -9,7 +9,7 @@ import es.uclm.StayOn.entity.Inmueble;
 import es.uclm.StayOn.entity.Inquilino;
 import es.uclm.StayOn.entity.Reserva;
 import es.uclm.StayOn.entity.Reserva.EstadoReserva;
-import es.uclm.StayOn.entity.PoliticaCancelacion;   // ✅ IMPORTANTE
+import es.uclm.StayOn.entity.PoliticaCancelacion;
 import es.uclm.StayOn.persistence.InmuebleDAO;
 import es.uclm.StayOn.persistence.ReservaDAO;
 
@@ -28,7 +28,7 @@ public class GestorBusquedas {
     private ReservaDAO reservaDAO;
 
     @Autowired
-    private GestorNotificaciones gestorNotificaciones; // ✅ ya lo tenías
+    private GestorNotificaciones gestorNotificaciones;
 
     @GetMapping("/buscarInmuebles")
     public String mostrarPaginaBusqueda(Model model) {
@@ -45,7 +45,7 @@ public class GestorBusquedas {
             @RequestParam(required = false, defaultValue = "false") boolean directa,
             @RequestParam(required = false) String fechaInicio,
             @RequestParam(required = false) String fechaFin,
-            @RequestParam(required = false) PoliticaCancelacion politica,   // ✅ NUEVO PARAMETRO
+            @RequestParam(required = false) PoliticaCancelacion politica,
             Model model) {
 
         Date fechaInicioDate = null;
@@ -61,12 +61,14 @@ public class GestorBusquedas {
 
         List<Inmueble> resultados = inmuebleDAO.findAll();
 
+        // no mostrar inmuebles eliminados (borrado lógico)
         resultados = resultados.stream()
                 .filter(Objects::nonNull)
+                .filter(i -> !i.isEliminado())
                 .filter(i -> i.getTipo() != null || i.getCiudad() != null)
                 .collect(Collectors.toList());
 
-        // 🔹 Filtro por destino (ciudad o dirección)
+        // Filtro por destino (ciudad o dirección)
         if (destino != null && !destino.trim().isEmpty()) {
             String destinoLower = destino.toLowerCase();
             resultados = resultados.stream()
@@ -75,28 +77,28 @@ public class GestorBusquedas {
                     .collect(Collectors.toList());
         }
 
-        // 🔹 Filtro por tipo
+        // Filtro por tipo
         if (tipo != null && !tipo.trim().isEmpty()) {
             resultados = resultados.stream()
                     .filter(i -> i.getTipo() != null && i.getTipo().equalsIgnoreCase(tipo))
                     .collect(Collectors.toList());
         }
 
-        // 🔹 Filtro por precio máximo
+        // Filtro por precio máximo
         if (precioMax != null && precioMax > 0) {
             resultados = resultados.stream()
                     .filter(i -> i.getPrecioPorNoche() != null && i.getPrecioPorNoche() <= precioMax)
                     .collect(Collectors.toList());
         }
 
-        // 🔹 Filtro por reserva inmediata (directa)
+        // Filtro por reserva inmediata (directa)
         if (directa) {
             resultados = resultados.stream()
                     .filter(i -> i.getDisponibilidad() != null && i.getDisponibilidad().isDirecta())
                     .collect(Collectors.toList());
         }
 
-        // 🔹 Filtro por política de cancelación (NUEVO)
+        // Filtro por política de cancelación
         if (politica != null) {
             final PoliticaCancelacion politicaSeleccionada = politica;
             resultados = resultados.stream()
@@ -106,7 +108,7 @@ public class GestorBusquedas {
                     .collect(Collectors.toList());
         }
 
-        // 🔹 Filtro por rango de fechas
+        // Filtro por rango de fechas (dentro del rango disponible)
         final Date fInicio = fechaInicioDate;
         final Date fFin = fechaFinDate;
         if (fInicio != null && fFin != null) {
@@ -129,6 +131,9 @@ public class GestorBusquedas {
         Inmueble inmueble = inmuebleDAO.findById(id).orElse(null);
         if (inmueble == null) return "redirect:/buscarInmuebles";
 
+        // si está eliminado, no se puede reservar
+        if (inmueble.isEliminado()) return "redirect:/buscarInmuebles";
+
         model.addAttribute("inmueble", inmueble);
         model.addAttribute("reserva", new Reserva());
         return "formularioReserva";
@@ -143,10 +148,13 @@ public class GestorBusquedas {
         Inmueble inmueble = inmuebleDAO.findById(inmuebleId).orElse(null);
         if (inmueble == null) return "redirect:/buscarInmuebles";
 
+        // si está eliminado, no se puede reservar
+        if (inmueble.isEliminado()) return "redirect:/buscarInmuebles";
+
         reserva.setInquilino(inquilino);
         reserva.setInmueble(inmueble);
 
-        //  VALIDACIÓN 0: fechas obligatorias
+        // VALIDACIÓN 0: fechas obligatorias
         if (reserva.getFechaInicio() == null || reserva.getFechaFin() == null) {
             model.addAttribute("error", "Debes seleccionar fecha de inicio y fin.");
             model.addAttribute("inmueble", inmueble);
@@ -154,7 +162,7 @@ public class GestorBusquedas {
             return "formularioReserva";
         }
 
-        //  VALIDACIÓN 1: inicio < fin
+        // VALIDACIÓN 1: inicio < fin
         if (!reserva.getFechaInicio().before(reserva.getFechaFin())) {
             model.addAttribute("error", "La fecha de fin debe ser posterior a la fecha de inicio.");
             model.addAttribute("inmueble", inmueble);
@@ -162,7 +170,7 @@ public class GestorBusquedas {
             return "formularioReserva";
         }
 
-        //  VALIDACIÓN 2: dentro del rango disponible del propietario
+        // VALIDACIÓN 2: dentro del rango disponible del propietario
         if (inmueble.getDisponibilidad() == null
                 || inmueble.getDisponibilidad().getFechaInicio() == null
                 || inmueble.getDisponibilidad().getFechaFin() == null) {
@@ -176,7 +184,7 @@ public class GestorBusquedas {
         Date dispFin = inmueble.getDisponibilidad().getFechaFin();
 
         if (reserva.getFechaInicio().before(dispIni) || reserva.getFechaFin().after(dispFin)) {
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             model.addAttribute("error",
                     "Esas fechas no están disponibles. Disponible solo de "
                             + sdf.format(dispIni) + " a " + sdf.format(dispFin) + ".");
@@ -185,7 +193,7 @@ public class GestorBusquedas {
             return "formularioReserva";
         }
 
-        //  VALIDACIÓN 3: sin solape con reservas existentes del mismo inmueble
+        // VALIDACIÓN 3: sin solape con reservas existentes del mismo inmueble (no rechazadas)
         boolean solapa = reservaDAO.existsSolapamiento(inmueble.getId(), reserva.getFechaInicio(), reserva.getFechaFin());
         if (solapa) {
             model.addAttribute("error", "Esas fechas ya están reservadas. Elige otras fechas.");
@@ -194,9 +202,8 @@ public class GestorBusquedas {
             return "formularioReserva";
         }
 
-        // DIRECTA / PENDIENTE
-        boolean esDirecta = inmueble.getDisponibilidad() != null
-                && inmueble.getDisponibilidad().isDirecta();
+        // DIRECTA / PENDIENTE (lo “congelamos” en la reserva)
+        boolean esDirecta = inmueble.getDisponibilidad() != null && inmueble.getDisponibilidad().isDirecta();
 
         if (esDirecta) {
             reserva.setEstado(EstadoReserva.ACEPTADA);
@@ -205,6 +212,22 @@ public class GestorBusquedas {
             reserva.setEstado(EstadoReserva.PENDIENTE);
             reserva.setPagado(false);
         }
+
+        
+        double precioAplicado = (inmueble.getPrecioPorNoche() != null) ? inmueble.getPrecioPorNoche() : 0.0;
+        reserva.setPrecioPorNocheAplicado(precioAplicado);
+
+        PoliticaCancelacion polAplicada = null;
+        if (inmueble.getDisponibilidad() != null) {
+            polAplicada = inmueble.getDisponibilidad().getPoliticaCancelacion();
+        }
+        reserva.setPoliticaCancelacionAplicada(polAplicada);
+
+        reserva.setReservaDirectaAplicada(esDirecta);
+
+        long noches = reserva.getNoches();
+        reserva.setPrecioTotal(precioAplicado * noches);
+      
 
         reservaDAO.save(reserva);
 
@@ -215,10 +238,9 @@ public class GestorBusquedas {
 
         model.addAttribute("inmueble", inmueble);
         model.addAttribute("reserva", reserva);
-        model.addAttribute("total", reserva.getPrecioTotal());
+        model.addAttribute("total", reserva.getPrecioTotal()); 
         model.addAttribute("esDirecta", esDirecta);
 
         return "reservaConfirmada";
     }
-
 }

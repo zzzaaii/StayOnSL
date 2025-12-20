@@ -25,7 +25,7 @@ public class Notificacion {
     @JoinColumn(name = "usuario_destino_id")
     private Usuario usuarioDestino;
 
-    // ======== Getters y Setters ========
+    //  Getters y Setters 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

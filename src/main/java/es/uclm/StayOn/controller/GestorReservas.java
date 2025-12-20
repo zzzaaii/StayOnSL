@@ -26,7 +26,7 @@ public class GestorReservas {
     private ReservaDAO reservaDAO;
 
     @Autowired
-    private GestorNotificaciones gestorNotificaciones; // gestor unificado
+    private GestorNotificaciones gestorNotificaciones; 
 
     @GetMapping
     public String listarReservas(Model model, @SessionAttribute("usuario") Inquilino inquilino) {
@@ -51,7 +51,7 @@ public class GestorReservas {
         reserva.setInquilino(inquilino);
         Inmueble inmueble = reserva.getInmueble();
 
-        // ✅ VALIDACIÓN mínima (sin tocar más lógica de reservas)
+        
         if (inmueble == null || inmueble.getId() == null || reserva.getFechaInicio() == null || reserva.getFechaFin() == null) {
             return "redirect:/misReservas";
         }

@@ -29,7 +29,7 @@ public class GestorPagos {
     @Autowired
     private GestorNotificaciones gestorNotificaciones;
 
-    // ⭐ Pantalla principal: HISTORIAL DE PAGOS
+    //  Pantalla principal: HISTORIAL DE PAGOS
     @GetMapping
     public String verPagos(@SessionAttribute("usuario") Inquilino inquilino,
                            Model model) {
@@ -42,7 +42,7 @@ public class GestorPagos {
         return "pagos";
     }
 
-    // ⭐ Mostrar formulario de pago para una reserva concreta
+    // Mostrar formulario de pago para una reserva concreta
     @GetMapping("/pagar/{reservaId}")
     public String mostrarFormularioPago(@PathVariable Long reservaId, Model model) {
 
@@ -62,7 +62,7 @@ public class GestorPagos {
         return "formularioPago";
     }
 
-    // ⭐ Procesar el pago de la reserva
+    //  Procesar el pago de la reserva
     @PostMapping("/procesarPago")
     public String procesarPago(@ModelAttribute Pago pago,
                                @RequestParam("reservaId") Long reservaId) {
@@ -99,7 +99,7 @@ public class GestorPagos {
         return "redirect:/misReservas";
     }
 
-    // ⭐ NUEVO: cancelar una reserva CONFIRMADA y procesar el reembolso
+    //cancelar una reserva CONFIRMADA y procesar el reembolso
     @GetMapping("/cancelar/{reservaId}")
     public String cancelarReservaConfirmada(@PathVariable Long reservaId,
                                             @SessionAttribute("usuario") Inquilino inquilino) {
@@ -161,8 +161,8 @@ public class GestorPagos {
                     reserva.getInmueble(),
                     inquilino
             );
-            // Aquí podrías añadir una específica tipo:
-            // gestorNotificaciones.reembolsoProcesado(inquilino, reserva, importeReembolso);
+            
+            
         } catch (Exception e) {
             System.err.println("⚠️ Error notificando cancelación con reembolso: " + e.getMessage());
         }

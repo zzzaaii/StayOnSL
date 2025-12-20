@@ -17,10 +17,10 @@ public interface ReservaDAO extends JpaRepository<Reserva, Long> {
 
     List<Reserva> findByInquilino(Inquilino inquilino);
 
-    // 🔹 Panel reservas propietario
+    // Panel reservas propietario
     List<Reserva> findByInmueblePropietario(Propietario propietario);
 
-    //  comprueba si existe solape (reservas NO rechazadas)
+    // comprueba si existe solape (reservas NO rechazadas)
     @Query("""
         SELECT COUNT(r) > 0
         FROM Reserva r
@@ -32,4 +32,29 @@ public interface ReservaDAO extends JpaRepository<Reserva, Long> {
     boolean existsSolapamiento(@Param("inmuebleId") Long inmuebleId,
                               @Param("inicio") Date inicio,
                               @Param("fin") Date fin);
+
+    // existe reserva activa (fechaFin >= hoy) y no rechazada
+    @Query("""
+        SELECT COUNT(r) > 0
+        FROM Reserva r
+        WHERE r.inmueble.id = :inmuebleId
+          AND r.estado <> es.uclm.StayOn.entity.Reserva$EstadoReserva.RECHAZADA
+          AND r.fechaFin >= :hoy
+    """)
+    boolean existsReservaActiva(@Param("inmuebleId") Long inmuebleId,
+                                @Param("hoy") Date hoy);
+
+    // (EDITAR): si hay reserva activa que quedaría fuera del nuevo rango
+    @Query("""
+        SELECT COUNT(r) > 0
+        FROM Reserva r
+        WHERE r.inmueble.id = :inmuebleId
+          AND r.estado <> es.uclm.StayOn.entity.Reserva$EstadoReserva.RECHAZADA
+          AND r.fechaFin >= :hoy
+          AND (r.fechaInicio < :nuevoInicio OR r.fechaFin > :nuevoFin)
+    """)
+    boolean existsReservaActivaFueraDeRango(@Param("inmuebleId") Long inmuebleId,
+                                           @Param("hoy") Date hoy,
+                                           @Param("nuevoInicio") Date nuevoInicio,
+                                           @Param("nuevoFin") Date nuevoFin);
 }
