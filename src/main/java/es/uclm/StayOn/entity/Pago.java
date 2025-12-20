@@ -31,7 +31,7 @@ public class Pago {
     @Transient
     private String emailPaypal;
 
-    // 🔵 NUEVOS CAMPOS: información de reembolso
+    //  información de reembolso
     private boolean reembolsado = false;
 
     private Double importeReembolsado;
@@ -39,7 +39,7 @@ public class Pago {
     @Temporal(TemporalType.TIMESTAMP)
     private Date fechaReembolso;
 
-    // ---------- GETTERS / SETTERS ----------
+    // GETTERS / SETTERS 
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

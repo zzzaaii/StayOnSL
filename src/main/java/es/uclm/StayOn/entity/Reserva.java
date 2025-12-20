@@ -7,12 +7,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 @Entity
 public class Reserva {
 
-    // 🆕 ENUM interno
     public enum EstadoReserva {
-        PENDIENTE,    // solicitud enviada, esperando decisión
-        ACEPTADA,     // aceptada por el propietario (falta pagar)
-        RECHAZADA,    // rechazada por el propietario
-        CONFIRMADA    // pagada y cerrada
+        PENDIENTE,
+        ACEPTADA,
+        RECHAZADA,
+        CONFIRMADA
     }
 
     @Id
@@ -32,7 +31,6 @@ public class Reserva {
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean pagado = false;
 
-    // 🆕 Estado de la reserva
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EstadoReserva estado = EstadoReserva.PENDIENTE;
@@ -46,9 +44,20 @@ public class Reserva {
     @OneToOne(mappedBy = "reserva", cascade = CascadeType.ALL)
     private Pago pago;
 
-    // =======================
-    // GETTERS Y SETTERS
-    // =======================
+    
+    @Column(nullable = false)
+    private Double precioPorNocheAplicado = 0.0;
+
+    @Enumerated(EnumType.STRING)
+    private PoliticaCancelacion politicaCancelacionAplicada;
+
+    @Column(nullable = false)
+    private Boolean reservaDirectaAplicada = false;
+
+    @Column(nullable = false)
+    private Double precioTotal = 0.0;
+
+   
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -62,6 +71,9 @@ public class Reserva {
     public boolean isPagado() { return pagado; }
     public void setPagado(boolean pagado) { this.pagado = pagado; }
 
+    public EstadoReserva getEstado() { return estado; }
+    public void setEstado(EstadoReserva estado) { this.estado = estado; }
+
     public Inquilino getInquilino() { return inquilino; }
     public void setInquilino(Inquilino inquilino) { this.inquilino = inquilino; }
 
@@ -71,24 +83,40 @@ public class Reserva {
     public Pago getPago() { return pago; }
     public void setPago(Pago pago) { this.pago = pago; }
 
-    // 🆕 getters y setters del estado
-    public EstadoReserva getEstado() { return estado; }
-    public void setEstado(EstadoReserva estado) { this.estado = estado; }
+    public Double getPrecioPorNocheAplicado() { return precioPorNocheAplicado; }
+    public void setPrecioPorNocheAplicado(Double precioPorNocheAplicado) {
+        this.precioPorNocheAplicado = (precioPorNocheAplicado != null) ? precioPorNocheAplicado : 0.0;
+    }
 
-    // =======================
-    // MÉTODOS AUXILIARES
-    // =======================
+    public PoliticaCancelacion getPoliticaCancelacionAplicada() { return politicaCancelacionAplicada; }
+    public void setPoliticaCancelacionAplicada(PoliticaCancelacion politicaCancelacionAplicada) {
+        this.politicaCancelacionAplicada = politicaCancelacionAplicada;
+    }
+
+    public Boolean getReservaDirectaAplicada() { return reservaDirectaAplicada; }
+    public void setReservaDirectaAplicada(Boolean reservaDirectaAplicada) {
+        this.reservaDirectaAplicada = (reservaDirectaAplicada != null) ? reservaDirectaAplicada : false;
+    }
+
+    public Double getPrecioTotal() { return precioTotal; }
+    public void setPrecioTotal(Double precioTotal) {
+        this.precioTotal = (precioTotal != null) ? precioTotal : 0.0;
+    }
+
+ 
 
     public boolean isActiva() {
         Date hoy = new Date();
         return hoy.compareTo(fechaInicio) >= 0 && hoy.compareTo(fechaFin) <= 0;
     }
 
+    public String getDireccion() {
+        return (inmueble != null) ? inmueble.getDireccion() : null;
+    }
+
     @Transient
-    public Double getPrecioTotal() {
-        if (fechaInicio == null || fechaFin == null || inmueble == null || inmueble.getPrecioPorNoche() == null) {
-            return null;
-        }
+    public long getNoches() {
+        if (fechaInicio == null || fechaFin == null) return 0;
 
         java.time.LocalDate inicio;
         java.time.LocalDate fin;
@@ -102,12 +130,6 @@ public class Reserva {
         }
 
         long noches = java.time.temporal.ChronoUnit.DAYS.between(inicio, fin);
-        if (noches < 1) noches = 1;
-
-        return inmueble.getPrecioPorNoche() * noches;
-    }
-
-    public String getDireccion() {
-        return (inmueble != null) ? inmueble.getDireccion() : null;
+        return (noches < 1) ? 1 : noches;
     }
 }

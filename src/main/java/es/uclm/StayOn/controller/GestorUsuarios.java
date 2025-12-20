@@ -19,15 +19,15 @@ public class GestorUsuarios {
     private UsuarioDAO usuarioDAO;
 
     @Autowired
-    private GestorNotificaciones gestorNotificaciones; // ✅ añadimos servicio unificado
+    private GestorNotificaciones gestorNotificaciones; // añadimos servicio unificado
 
-    // 🔹 Mostrar formulario de registro
+    // Mostrar formulario de registro
     @GetMapping("/registro")
     public String mostrarFormularioRegistro(Model model) {
         return "registro";
     }
 
-    // 🔹 Procesar registro
+    // Procesar registro
     @PostMapping("/registro")
     public String registrarUsuario(@RequestParam String rol,
                                    @RequestParam String login,
@@ -58,7 +58,7 @@ public class GestorUsuarios {
 
         usuarioDAO.save(nuevoUsuario);
 
-        // 🆕 Notificación de bienvenida
+        // Notificación de bienvenida
         gestorNotificaciones.enviar(nuevoUsuario, "USUARIO_REGISTRO",
                 "🎉 Bienvenido a StayOn, " + nombre + ". Tu cuenta ha sido creada con éxito.");
 
@@ -75,7 +75,7 @@ public class GestorUsuarios {
         return "login";
     }
 
-    // 🔹 Procesar login
+    // Procesar login
     @PostMapping("/login")
     public String login(@RequestParam String login,
                         @RequestParam String pass,
@@ -96,7 +96,7 @@ public class GestorUsuarios {
 
         session.setAttribute("usuario", usuario);
 
-        // 🆕 Notificación de inicio de sesión
+        // Notificación de inicio de sesión
         gestorNotificaciones.enviar(usuario, "LOGIN",
                 "👋 Has iniciado sesión correctamente en StayOn.");
 
@@ -107,7 +107,7 @@ public class GestorUsuarios {
         }
     }
 
-    // 🔹 Cerrar sesión
+    //  Cerrar sesión
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         Usuario usuario = (Usuario) session.getAttribute("usuario");

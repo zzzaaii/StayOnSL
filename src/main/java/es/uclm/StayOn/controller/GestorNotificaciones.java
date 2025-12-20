@@ -17,9 +17,9 @@ public class GestorNotificaciones {
     @Autowired
     private NotificacionDAO notificacionDAO;
 
-    // ====================================================
-    // 🔹 SECCIÓN 1: MOSTRAR Y GESTIONAR NOTIFICACIONES
-    // ====================================================
+   
+    //  SECCIÓN 1: MOSTRAR Y GESTIONAR NOTIFICACIONES
+ 
 
     @GetMapping
     public String verNotificaciones(HttpSession session, Model model) {
@@ -58,11 +58,11 @@ public class GestorNotificaciones {
         return "redirect:/notificaciones";
     }
 
-    // ====================================================
-    // 🔹 SECCIÓN 2: MÉTODOS PARA CREAR NOTIFICACIONES
-    // ====================================================
+   
+    //  SECCIÓN 2: MÉTODOS PARA CREAR NOTIFICACIONES
+  
 
-    /** Método genérico para enviar cualquier tipo de notificación */
+    // Método genérico para enviar cualquier tipo de notificación 
     public void enviar(Usuario destino, String tipo, String mensaje) {
         if (destino == null || mensaje == null || mensaje.isBlank()) return;
 
@@ -75,9 +75,9 @@ public class GestorNotificaciones {
         notificacionDAO.save(n);
     }
 
-    // ===============================
-    // 🔸 EVENTOS DE RESERVAS
-    // ===============================
+
+    //  EVENTOS DE RESERVAS
+  
 
     public void nuevaReserva(Propietario propietario, Inmueble inmueble) {
         enviar(propietario, "RESERVA_NUEVA",
@@ -109,9 +109,9 @@ public class GestorNotificaciones {
                 "🕓 Tu reserva en " + inmueble.getDireccion() + " comienza mañana.");
     }
 
-    // ===============================
-    // 🔸 EVENTOS DE INMUEBLES
-    // ===============================
+  
+    // EVENTOS DE INMUEBLES
+   
 
     public void inmueblePublicado(Propietario propietario, Inmueble inmueble) {
         enviar(propietario, "INMUEBLE_PUBLICADO",
@@ -123,9 +123,9 @@ public class GestorNotificaciones {
                 "✏️ Has actualizado la información de tu inmueble: " + inmueble.getDireccion());
     }
 
-    // ===============================
-    // 🔸 EVENTOS DE PAGOS
-    // ===============================
+   
+    // EVENTOS DE PAGOS
+    
 
     public void pagoConfirmado(Inquilino inquilino, Reserva reserva) {
         enviar(inquilino, "PAGO_CONFIRMADO",
@@ -136,9 +136,9 @@ public class GestorNotificaciones {
         enviar(propietario, "PAGO_RECIBIDO",
                 "💰 Has recibido el pago de la reserva en " + reserva.getDireccion() + ".");
     }
- // ====================================================
- // 🔹 SECCIÓN 3: ENDPOINT PARA CONTADOR AJAX
- // ====================================================
+ 
+ //  SECCIÓN 3: ENDPOINT PARA CONTADOR AJAX
+
  @GetMapping("/noLeidas")
  @ResponseBody
  public long contarNoLeidas(HttpSession session) {

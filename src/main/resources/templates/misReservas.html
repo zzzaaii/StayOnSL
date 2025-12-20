@@ -124,7 +124,7 @@
                        th:href="@{/pagos/pagar/{reservaId}(reservaId=${reserva.id})}"
                        class="btn-pay">💳 Pagar</a>
 
-                    <!-- 🔵 NUEVO: cancelar y procesar reembolso SOLO si está CONFIRMADA -->
+                    <!-- cancelar y procesar reembolso SOLO si está CONFIRMADA -->
                     <a th:if="${reserva.estado.name() == 'CONFIRMADA'}"
                        th:href="@{/pagos/cancelar/{reservaId}(reservaId=${reserva.id})}"
                        class="btn-cancel">

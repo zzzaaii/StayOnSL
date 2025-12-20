@@ -24,23 +24,20 @@ public class Inmueble {
     @Column(nullable = false)
     private Double precioPorNoche = 0.0; // valor por defecto para evitar null
 
+    // borrado lógico
+    @Column(nullable = false)
+    private boolean eliminado = false;
+
     @ManyToOne
     @JoinColumn(name = "propietario_id", nullable = false)
     private Propietario propietario;
-    
+
     @OneToOne(cascade = CascadeType.ALL)
     private Disponibilidad disponibilidad;
+
     // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
- // Getters y setters correctos
-    public Disponibilidad getDisponibilidad() {
-        return disponibilidad;
-    }
-
-    public void setDisponibilidad(Disponibilidad disponibilidad) {
-        this.disponibilidad = disponibilidad;
-    }
 
     public String getTipo() { return tipo; }
     public void setTipo(String tipo) { this.tipo = tipo; }
@@ -59,5 +56,10 @@ public class Inmueble {
 
     public Propietario getPropietario() { return propietario; }
     public void setPropietario(Propietario propietario) { this.propietario = propietario; }
-}
 
+    public Disponibilidad getDisponibilidad() { return disponibilidad; }
+    public void setDisponibilidad(Disponibilidad disponibilidad) { this.disponibilidad = disponibilidad; }
+
+    public boolean isEliminado() { return eliminado; }
+    public void setEliminado(boolean eliminado) { this.eliminado = eliminado; }
+}
