@@ -236,4 +236,5 @@ public class GestorInmuebles {
         model.addAttribute("inmueble", inmueble);
         return "detalleInmueble";
     }
+    
 }
