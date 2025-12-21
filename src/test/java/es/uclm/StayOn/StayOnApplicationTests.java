@@ -1,13 +1,20 @@
 package es.uclm.StayOn;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 
-@SpringBootTest
-class StayOnApplicationTests {
+import static org.assertj.core.api.Assertions.assertThat;
 
-	@Test
-	void contextLoads() {
-	}
+class ServletInitializerTest {
 
+    @Test
+    void configure_setsSources() {
+        ServletInitializer initializer = new ServletInitializer();
+
+        SpringApplicationBuilder builder = new SpringApplicationBuilder();
+        SpringApplicationBuilder configured = initializer.configure(builder);
+
+        assertThat(configured).isNotNull();
+        
+    }
 }

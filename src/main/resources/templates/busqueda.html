@@ -107,17 +107,18 @@
     <h1>Confirmar Reserva</h1>
 
     <div class="inmueble-info">
-        <p><strong>Tipo:</strong> <span th:text="${inmueble.tipo}"></span></p>
-        <p><strong>Ciudad:</strong> <span th:text="${inmueble.ciudad}"></span></p>
-        <p><strong>Dirección:</strong> <span th:text="${inmueble.direccion}"></span></p>
-        <p><strong>Descripción:</strong> <span th:text="${inmueble.descripcion}"></span></p>
+        <p><strong>Tipo:</strong> <span th:text="${inmueble != null ? inmueble.tipo : ''}"></span></p>
+        <p><strong>Ciudad:</strong> <span th:text="${inmueble != null ? inmueble.ciudad : ''}"></span></p>
+        <p><strong>Dirección:</strong> <span th:text="${inmueble != null ? inmueble.direccion : ''}"></span></p>
+        <p><strong>Descripción:</strong> <span th:text="${inmueble != null ? inmueble.descripcion : ''}"></span></p>
         <p><strong>Precio por noche:</strong>
-            <span id="precioPorNoche" th:text="${#numbers.formatDecimal(inmueble.precioPorNoche, 1, 'POINT', 2, 'COMMA')}"></span> €
+            <span id="precioPorNoche"
+                  th:text="${inmueble != null ? #numbers.formatDecimal(inmueble.precioPorNoche, 1, 'POINT', 2, 'COMMA') : '0,00'}"></span> €
         </p>
 
         <p>
             <strong>Tipo de reserva:</strong>
-            <span th:text="${inmueble.disponibilidad != null and inmueble.disponibilidad.directa} ?
+            <span th:text="${inmueble != null and inmueble.disponibilidad != null and inmueble.disponibilidad.directa} ?
                            'Reserva directa (se acepta automáticamente al reservar)' :
                            'Reserva con solicitud (el propietario debe aceptarla primero)'">
             </span>
@@ -125,8 +126,8 @@
 
         <p>
             <strong>Política de cancelación:</strong>
-            <span th:if="${inmueble.disponibilidad == null or inmueble.disponibilidad.politicaCancelacion == null}">Sin definir</span>
-            <span th:if="${inmueble.disponibilidad != null and inmueble.disponibilidad.politicaCancelacion != null}"
+            <span th:if="${inmueble == null or inmueble.disponibilidad == null or inmueble.disponibilidad.politicaCancelacion == null}">Sin definir</span>
+            <span th:if="${inmueble != null and inmueble.disponibilidad != null and inmueble.disponibilidad.politicaCancelacion != null}"
                   th:switch="${inmueble.disponibilidad.politicaCancelacion.name()}">
                 <span th:case="'NO_REEMBOLSABLE'">No reembolsable</span>
                 <span th:case="'REEMBOLSABLE_50_PER'">Reembolsable 50%</span>
@@ -140,16 +141,17 @@
     <!--  ERROR SI HAY PROBLEMA DE FECHAS -->
     <div class="alert-error" th:if="${error}" th:text="${error}"></div>
 
-    <form th:action="@{/confirmarReserva}" method="post" th:object="${reserva}">
-        <input type="hidden" th:value="${inmueble.id}" name="inmuebleId"/>
+    <!-- FORM NORMAL: cuando 'reserva' existe -->
+    <form th:if="${reserva != null}" th:action="@{/confirmarReserva}" method="post" th:object="${reserva}">
+        <input type="hidden" th:value="${inmueble != null ? inmueble.id : ''}" name="inmuebleId"/>
 
         <div>
             <label>Fecha inicio:</label>
             <input type="date"
                    th:field="*{fechaInicio}"
                    required
-                   th:attr="min=${inmueble.disponibilidad != null ? #dates.format(inmueble.disponibilidad.fechaInicio,'yyyy-MM-dd') : null},
-                            max=${inmueble.disponibilidad != null ? #dates.format(inmueble.disponibilidad.fechaFin,'yyyy-MM-dd') : null}">
+                   th:attr="min=${inmueble != null and inmueble.disponibilidad != null ? #dates.format(inmueble.disponibilidad.fechaInicio,'yyyy-MM-dd') : null},
+                            max=${inmueble != null and inmueble.disponibilidad != null ? #dates.format(inmueble.disponibilidad.fechaFin,'yyyy-MM-dd') : null}">
         </div>
 
         <div>
@@ -157,8 +159,35 @@
             <input type="date"
                    th:field="*{fechaFin}"
                    required
-                   th:attr="min=${inmueble.disponibilidad != null ? #dates.format(inmueble.disponibilidad.fechaInicio,'yyyy-MM-dd') : null},
-                            max=${inmueble.disponibilidad != null ? #dates.format(inmueble.disponibilidad.fechaFin,'yyyy-MM-dd') : null}">
+                   th:attr="min=${inmueble != null and inmueble.disponibilidad != null ? #dates.format(inmueble.disponibilidad.fechaInicio,'yyyy-MM-dd') : null},
+                            max=${inmueble != null and inmueble.disponibilidad != null ? #dates.format(inmueble.disponibilidad.fechaFin,'yyyy-MM-dd') : null}">
+        </div>
+
+        <p class="precio-total">Total estimado: <span id="precioTotal">-</span> €</p>
+
+        <button type="submit" class="btn-confirmar">Confirmar reserva</button>
+    </form>
+
+    <!-- FALLBACK: cuando 'reserva' NO existe (evita crash de Thymeleaf) -->
+    <form th:if="${reserva == null}" th:action="@{/confirmarReserva}" method="post">
+        <input type="hidden" th:value="${inmueble != null ? inmueble.id : ''}" name="inmuebleId"/>
+
+        <div>
+            <label>Fecha inicio:</label>
+            <input type="date"
+                   name="fechaInicio"
+                   required
+                   th:attr="min=${inmueble != null and inmueble.disponibilidad != null ? #dates.format(inmueble.disponibilidad.fechaInicio,'yyyy-MM-dd') : null},
+                            max=${inmueble != null and inmueble.disponibilidad != null ? #dates.format(inmueble.disponibilidad.fechaFin,'yyyy-MM-dd') : null}">
+        </div>
+
+        <div>
+            <label>Fecha fin:</label>
+            <input type="date"
+                   name="fechaFin"
+                   required
+                   th:attr="min=${inmueble != null and inmueble.disponibilidad != null ? #dates.format(inmueble.disponibilidad.fechaInicio,'yyyy-MM-dd') : null},
+                            max=${inmueble != null and inmueble.disponibilidad != null ? #dates.format(inmueble.disponibilidad.fechaFin,'yyyy-MM-dd') : null}">
         </div>
 
         <p class="precio-total">Total estimado: <span id="precioTotal">-</span> €</p>
@@ -189,8 +218,8 @@
         }
     }
 
-    inputInicio.addEventListener("change", calcularTotal);
-    inputFin.addEventListener("change", calcularTotal);
+    if (inputInicio) inputInicio.addEventListener("change", calcularTotal);
+    if (inputFin) inputFin.addEventListener("change", calcularTotal);
 </script>
 
 </body>
