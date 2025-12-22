@@ -15,12 +15,18 @@ import java.util.List;
 @Repository
 public interface ReservaDAO extends JpaRepository<Reserva, Long> {
 
-    List<Reserva> findByInquilino(Inquilino inquilino);
+    // ✅ Solo las NO ocultas para el inquilino
+    @Query("""
+        SELECT r
+        FROM Reserva r
+        WHERE r.inquilino = :inquilino
+          AND r.ocultaParaInquilino = false
+    """)
+    List<Reserva> findByInquilino(@Param("inquilino") Inquilino inquilino);
 
-    // Panel reservas propietario
+    // Panel reservas propietario (sin cambios)
     List<Reserva> findByInmueblePropietario(Propietario propietario);
 
-    // comprueba si existe solape (reservas NO rechazadas)
     @Query("""
         SELECT COUNT(r) > 0
         FROM Reserva r
@@ -33,7 +39,6 @@ public interface ReservaDAO extends JpaRepository<Reserva, Long> {
                               @Param("inicio") Date inicio,
                               @Param("fin") Date fin);
 
-    // existe reserva activa (fechaFin >= hoy) y no rechazada
     @Query("""
         SELECT COUNT(r) > 0
         FROM Reserva r
@@ -44,7 +49,6 @@ public interface ReservaDAO extends JpaRepository<Reserva, Long> {
     boolean existsReservaActiva(@Param("inmuebleId") Long inmuebleId,
                                 @Param("hoy") Date hoy);
 
-    // (EDITAR): si hay reserva activa que quedaría fuera del nuevo rango
     @Query("""
         SELECT COUNT(r) > 0
         FROM Reserva r

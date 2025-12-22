@@ -1,6 +1,5 @@
 package es.uclm.StayOn.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,19 +15,33 @@ import es.uclm.StayOn.persistence.ReservaDAO;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Controller
 public class GestorBusquedas {
 
-    @Autowired
-    private InmuebleDAO inmuebleDAO;
+    private static final Logger log = LoggerFactory.getLogger(GestorBusquedas.class);
 
-    @Autowired
-    private ReservaDAO reservaDAO;
+    private static final String REDIRECT_BUSCAR_INMUEBLES = "redirect:/buscarInmuebles";
+    private static final String VISTA_FORMULARIO_RESERVA = "formularioReserva";
 
-    @Autowired
-    private GestorNotificaciones gestorNotificaciones;
+    private static final String ATTR_INMUEBLE = "inmueble";
+    private static final String ATTR_RESERVA = "reserva";
+    private static final String ATTR_ERROR = "error";
+
+    private final InmuebleDAO inmuebleDAO;
+    private final ReservaDAO reservaDAO;
+    private final GestorNotificaciones gestorNotificaciones;
+
+    public GestorBusquedas(InmuebleDAO inmuebleDAO,
+                           ReservaDAO reservaDAO,
+                           GestorNotificaciones gestorNotificaciones) {
+        this.inmuebleDAO = inmuebleDAO;
+        this.reservaDAO = reservaDAO;
+        this.gestorNotificaciones = gestorNotificaciones;
+    }
 
     @GetMapping("/buscarInmuebles")
     public String mostrarPaginaBusqueda(Model model) {
@@ -48,78 +61,16 @@ public class GestorBusquedas {
             @RequestParam(required = false) PoliticaCancelacion politica,
             Model model) {
 
-        Date fechaInicioDate = null;
-        Date fechaFinDate = null;
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
-        try {
-            if (fechaInicio != null && !fechaInicio.isEmpty()) fechaInicioDate = sdf.parse(fechaInicio);
-            if (fechaFin != null && !fechaFin.isEmpty()) fechaFinDate = sdf.parse(fechaFin);
-        } catch (ParseException e) {
-            System.out.println("⚠️ Error al parsear fechas: " + e.getMessage());
-        }
+        RangoFechas rango = parsearFechas(fechaInicio, fechaFin);
 
         List<Inmueble> resultados = inmuebleDAO.findAll();
-
-        // no mostrar inmuebles eliminados (borrado lógico)
-        resultados = resultados.stream()
-                .filter(Objects::nonNull)
-                .filter(i -> !i.isEliminado())
-                .filter(i -> i.getTipo() != null || i.getCiudad() != null)
-                .collect(Collectors.toList());
-
-        // Filtro por destino (ciudad o dirección)
-        if (destino != null && !destino.trim().isEmpty()) {
-            String destinoLower = destino.toLowerCase();
-            resultados = resultados.stream()
-                    .filter(i -> (i.getCiudad() != null && i.getCiudad().toLowerCase().contains(destinoLower))
-                            || (i.getDireccion() != null && i.getDireccion().toLowerCase().contains(destinoLower)))
-                    .collect(Collectors.toList());
-        }
-
-        // Filtro por tipo
-        if (tipo != null && !tipo.trim().isEmpty()) {
-            resultados = resultados.stream()
-                    .filter(i -> i.getTipo() != null && i.getTipo().equalsIgnoreCase(tipo))
-                    .collect(Collectors.toList());
-        }
-
-        // Filtro por precio máximo
-        if (precioMax != null && precioMax > 0) {
-            resultados = resultados.stream()
-                    .filter(i -> i.getPrecioPorNoche() != null && i.getPrecioPorNoche() <= precioMax)
-                    .collect(Collectors.toList());
-        }
-
-        // Filtro por reserva inmediata (directa)
-        if (directa) {
-            resultados = resultados.stream()
-                    .filter(i -> i.getDisponibilidad() != null && i.getDisponibilidad().isDirecta())
-                    .collect(Collectors.toList());
-        }
-
-        // Filtro por política de cancelación
-        if (politica != null) {
-            final PoliticaCancelacion politicaSeleccionada = politica;
-            resultados = resultados.stream()
-                    .filter(i -> i.getDisponibilidad() != null
-                            && i.getDisponibilidad().getPoliticaCancelacion() != null
-                            && i.getDisponibilidad().getPoliticaCancelacion().equals(politicaSeleccionada))
-                    .collect(Collectors.toList());
-        }
-
-        // Filtro por rango de fechas (dentro del rango disponible)
-        final Date fInicio = fechaInicioDate;
-        final Date fFin = fechaFinDate;
-        if (fInicio != null && fFin != null) {
-            resultados = resultados.stream()
-                    .filter(i -> i.getDisponibilidad() != null
-                            && i.getDisponibilidad().getFechaInicio() != null
-                            && i.getDisponibilidad().getFechaFin() != null
-                            && !fInicio.before(i.getDisponibilidad().getFechaInicio())
-                            && !fFin.after(i.getDisponibilidad().getFechaFin()))
-                    .collect(Collectors.toList());
-        }
+        resultados = filtrarBase(resultados);
+        resultados = filtrarPorDestino(resultados, destino);
+        resultados = filtrarPorTipo(resultados, tipo);
+        resultados = filtrarPorPrecioMax(resultados, precioMax);
+        resultados = filtrarPorDirecta(resultados, directa);
+        resultados = filtrarPorPolitica(resultados, politica);
+        resultados = filtrarPorRangoFechas(resultados, rango);
 
         model.addAttribute("resultados", resultados);
         model.addAttribute("busquedaRealizada", true);
@@ -129,14 +80,13 @@ public class GestorBusquedas {
     @GetMapping("/reservar/{id}")
     public String mostrarFormularioReserva(@PathVariable Long id, Model model) {
         Inmueble inmueble = inmuebleDAO.findById(id).orElse(null);
-        if (inmueble == null) return "redirect:/buscarInmuebles";
+        if (inmueble == null) return REDIRECT_BUSCAR_INMUEBLES;
 
-        // si está eliminado, no se puede reservar
-        if (inmueble.isEliminado()) return "redirect:/buscarInmuebles";
+        if (inmueble.isEliminado()) return REDIRECT_BUSCAR_INMUEBLES;
 
-        model.addAttribute("inmueble", inmueble);
-        model.addAttribute("reserva", new Reserva());
-        return "formularioReserva";
+        model.addAttribute(ATTR_INMUEBLE, inmueble);
+        model.addAttribute(ATTR_RESERVA, new Reserva());
+        return VISTA_FORMULARIO_RESERVA;
     }
 
     @PostMapping("/confirmarReserva")
@@ -146,38 +96,27 @@ public class GestorBusquedas {
                                    Model model) {
 
         Inmueble inmueble = inmuebleDAO.findById(inmuebleId).orElse(null);
-        if (inmueble == null) return "redirect:/buscarInmuebles";
+        if (inmueble == null) return REDIRECT_BUSCAR_INMUEBLES;
 
-        // si está eliminado, no se puede reservar
-        if (inmueble.isEliminado()) return "redirect:/buscarInmuebles";
+        if (inmueble.isEliminado()) return REDIRECT_BUSCAR_INMUEBLES;
 
         reserva.setInquilino(inquilino);
         reserva.setInmueble(inmueble);
 
-        // VALIDACIÓN 0: fechas obligatorias
         if (reserva.getFechaInicio() == null || reserva.getFechaFin() == null) {
-            model.addAttribute("error", "Debes seleccionar fecha de inicio y fin.");
-            model.addAttribute("inmueble", inmueble);
-            model.addAttribute("reserva", reserva);
-            return "formularioReserva";
+            return devolverFormularioConError(model, inmueble, reserva, "Debes seleccionar fecha de inicio y fin.");
         }
 
-        // VALIDACIÓN 1: inicio < fin
         if (!reserva.getFechaInicio().before(reserva.getFechaFin())) {
-            model.addAttribute("error", "La fecha de fin debe ser posterior a la fecha de inicio.");
-            model.addAttribute("inmueble", inmueble);
-            model.addAttribute("reserva", reserva);
-            return "formularioReserva";
+            return devolverFormularioConError(model, inmueble, reserva,
+                    "La fecha de fin debe ser posterior a la fecha de inicio.");
         }
 
-        // VALIDACIÓN 2: dentro del rango disponible del propietario
         if (inmueble.getDisponibilidad() == null
                 || inmueble.getDisponibilidad().getFechaInicio() == null
                 || inmueble.getDisponibilidad().getFechaFin() == null) {
-            model.addAttribute("error", "Este inmueble no tiene un rango de disponibilidad definido.");
-            model.addAttribute("inmueble", inmueble);
-            model.addAttribute("reserva", reserva);
-            return "formularioReserva";
+            return devolverFormularioConError(model, inmueble, reserva,
+                    "Este inmueble no tiene un rango de disponibilidad definido.");
         }
 
         Date dispIni = inmueble.getDisponibilidad().getFechaInicio();
@@ -185,49 +124,34 @@ public class GestorBusquedas {
 
         if (reserva.getFechaInicio().before(dispIni) || reserva.getFechaFin().after(dispFin)) {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            model.addAttribute("error",
+            return devolverFormularioConError(model, inmueble, reserva,
                     "Esas fechas no están disponibles. Disponible solo de "
                             + sdf.format(dispIni) + " a " + sdf.format(dispFin) + ".");
-            model.addAttribute("inmueble", inmueble);
-            model.addAttribute("reserva", reserva);
-            return "formularioReserva";
         }
 
-        // VALIDACIÓN 3: sin solape con reservas existentes del mismo inmueble (no rechazadas)
         boolean solapa = reservaDAO.existsSolapamiento(inmueble.getId(), reserva.getFechaInicio(), reserva.getFechaFin());
         if (solapa) {
-            model.addAttribute("error", "Esas fechas ya están reservadas. Elige otras fechas.");
-            model.addAttribute("inmueble", inmueble);
-            model.addAttribute("reserva", reserva);
-            return "formularioReserva";
+            return devolverFormularioConError(model, inmueble, reserva,
+                    "Esas fechas ya están reservadas. Elige otras fechas.");
         }
 
-        // DIRECTA / PENDIENTE (lo “congelamos” en la reserva)
         boolean esDirecta = inmueble.getDisponibilidad() != null && inmueble.getDisponibilidad().isDirecta();
 
-        if (esDirecta) {
-            reserva.setEstado(EstadoReserva.ACEPTADA);
-            reserva.setPagado(false);
-        } else {
-            reserva.setEstado(EstadoReserva.PENDIENTE);
-            reserva.setPagado(false);
-        }
+        reserva.setEstado(esDirecta ? EstadoReserva.ACEPTADA : EstadoReserva.PENDIENTE);
+        reserva.setPagado(false);
 
-        
         double precioAplicado = (inmueble.getPrecioPorNoche() != null) ? inmueble.getPrecioPorNoche() : 0.0;
         reserva.setPrecioPorNocheAplicado(precioAplicado);
 
-        PoliticaCancelacion polAplicada = null;
-        if (inmueble.getDisponibilidad() != null) {
-            polAplicada = inmueble.getDisponibilidad().getPoliticaCancelacion();
-        }
+        PoliticaCancelacion polAplicada = (inmueble.getDisponibilidad() != null)
+                ? inmueble.getDisponibilidad().getPoliticaCancelacion()
+                : null;
         reserva.setPoliticaCancelacionAplicada(polAplicada);
 
         reserva.setReservaDirectaAplicada(esDirecta);
 
         long noches = reserva.getNoches();
         reserva.setPrecioTotal(precioAplicado * noches);
-      
 
         reservaDAO.save(reserva);
 
@@ -236,11 +160,109 @@ public class GestorBusquedas {
         gestorNotificaciones.enviar(inmueble.getPropietario(), "RESERVA_RECIBIDA",
                 "📬 Has recibido una nueva reserva para tu inmueble: " + inmueble.getDireccion());
 
-        model.addAttribute("inmueble", inmueble);
-        model.addAttribute("reserva", reserva);
-        model.addAttribute("total", reserva.getPrecioTotal()); 
+        model.addAttribute(ATTR_INMUEBLE, inmueble);
+        model.addAttribute(ATTR_RESERVA, reserva);
+        model.addAttribute("total", reserva.getPrecioTotal());
         model.addAttribute("esDirecta", esDirecta);
 
         return "reservaConfirmada";
+    }
+
+    private String devolverFormularioConError(Model model, Inmueble inmueble, Reserva reserva, String mensaje) {
+        model.addAttribute(ATTR_ERROR, mensaje);
+        model.addAttribute(ATTR_INMUEBLE, inmueble);
+        model.addAttribute(ATTR_RESERVA, reserva);
+        return VISTA_FORMULARIO_RESERVA;
+    }
+
+    // ==========================
+    // Helpers para bajar complejidad
+    // ==========================
+
+    private static final class RangoFechas {
+        final Date inicio;
+        final Date fin;
+        RangoFechas(Date inicio, Date fin) {
+            this.inicio = inicio;
+            this.fin = fin;
+        }
+        boolean completo() { return inicio != null && fin != null; }
+    }
+
+    private RangoFechas parsearFechas(String fechaInicio, String fechaFin) {
+        Date ini = null;
+        Date fin = null;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+        try {
+            if (fechaInicio != null && !fechaInicio.isEmpty()) ini = sdf.parse(fechaInicio);
+            if (fechaFin != null && !fechaFin.isEmpty()) fin = sdf.parse(fechaFin);
+        } catch (ParseException e) {
+            log.warn("Error al parsear fechas: {}", e.getMessage());
+        }
+
+        return new RangoFechas(ini, fin);
+    }
+
+    private List<Inmueble> filtrarBase(List<Inmueble> resultados) {
+        return resultados.stream()
+                .filter(Objects::nonNull)
+                .filter(i -> !i.isEliminado())
+                .filter(i -> i.getTipo() != null || i.getCiudad() != null)
+                .toList();
+    }
+
+    private List<Inmueble> filtrarPorDestino(List<Inmueble> resultados, String destino) {
+        if (destino == null || destino.trim().isEmpty()) return resultados;
+        String destinoLower = destino.toLowerCase();
+        return resultados.stream()
+                .filter(i -> (i.getCiudad() != null && i.getCiudad().toLowerCase().contains(destinoLower))
+                        || (i.getDireccion() != null && i.getDireccion().toLowerCase().contains(destinoLower)))
+                .toList();
+    }
+
+    private List<Inmueble> filtrarPorTipo(List<Inmueble> resultados, String tipo) {
+        if (tipo == null || tipo.trim().isEmpty()) return resultados;
+        return resultados.stream()
+                .filter(i -> i.getTipo() != null && i.getTipo().equalsIgnoreCase(tipo))
+                .toList();
+    }
+
+    private List<Inmueble> filtrarPorPrecioMax(List<Inmueble> resultados, Double precioMax) {
+        if (precioMax == null || precioMax <= 0) return resultados;
+        return resultados.stream()
+                .filter(i -> i.getPrecioPorNoche() != null && i.getPrecioPorNoche() <= precioMax)
+                .toList();
+    }
+
+    private List<Inmueble> filtrarPorDirecta(List<Inmueble> resultados, boolean directa) {
+        if (!directa) return resultados;
+        return resultados.stream()
+                .filter(i -> i.getDisponibilidad() != null && i.getDisponibilidad().isDirecta())
+                .toList();
+    }
+
+    private List<Inmueble> filtrarPorPolitica(List<Inmueble> resultados, PoliticaCancelacion politica) {
+        if (politica == null) return resultados;
+        return resultados.stream()
+                .filter(i -> i.getDisponibilidad() != null
+                        && i.getDisponibilidad().getPoliticaCancelacion() != null
+                        && i.getDisponibilidad().getPoliticaCancelacion().equals(politica))
+                .toList();
+    }
+
+    private List<Inmueble> filtrarPorRangoFechas(List<Inmueble> resultados, RangoFechas rango) {
+        if (rango == null || !rango.completo()) return resultados;
+
+        Date fInicio = rango.inicio;
+        Date fFin = rango.fin;
+
+        return resultados.stream()
+                .filter(i -> i.getDisponibilidad() != null
+                        && i.getDisponibilidad().getFechaInicio() != null
+                        && i.getDisponibilidad().getFechaFin() != null
+                        && !fInicio.before(i.getDisponibilidad().getFechaInicio())
+                        && !fFin.after(i.getDisponibilidad().getFechaFin()))
+                .toList();
     }
 }

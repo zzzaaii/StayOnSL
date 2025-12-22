@@ -16,8 +16,55 @@
     <artifactId>StayOn</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
-    <name>StayOn</name>
-    <description>Demo project for Spring Boot</description>
+
+    <!-- ✅ Personalización Maven Site -->
+    <name>StayOnSL</name>
+    <description>Sistema de alquiler de viviendas entre particulares desarrollado con Spring Boot</description>
+    <!-- Cambia esta URL por la real del repo -->
+    <url>https://github.com/USUARIO/StayOnSL</url>
+
+    <!-- ✅ Información del equipo (Project Information -> Team) -->
+    <developers>
+        <developer>
+            <name>Zaida Burgos Rodríguez</name>
+            <roles><role>Owner</role></roles>
+        </developer>
+        <developer>
+            <name>Jesús Pulido Hernández</name>
+            <roles><role>Developer</role></roles>
+        </developer>
+        <developer>
+            <name>Erika Macarro García</name>
+            <roles><role>Developer</role></roles>
+        </developer>
+        <developer>
+            <name>Jaime García de las Heras</name>
+            <roles><role>Scrum Master</role></roles>
+        </developer>
+    </developers>
+
+    <!-- ✅ SCM (Project Information -> Source Code Management) -->
+    <scm>
+        <!-- Cambia estas URLs por las reales del repo -->
+        <connection>scm:git:https://github.com/USUARIO/StayOnSL.git</connection>
+        <developerConnection>scm:git:https://github.com/USUARIO/StayOnSL.git</developerConnection>
+        <url>https://github.com/zzzaaii/StayOnSL</url>
+    </scm>
+
+    <!-- ✅ (Opcional) Gestión de incidencias -->
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/zzzaaii/StayOnSL/issues</url>
+    </issueManagement>
+
+    <!-- ✅ (Opcional) Licencia (para que no salga vacío) -->
+    <licenses>
+        <license>
+            <name>Uso académico</name>
+            <url>https://uclm.es</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <properties>
         <java.version>21</java.version>
@@ -27,9 +74,10 @@
         <sonar.projectKey>stayonsl1_StayOnSL</sonar.projectKey>
         <sonar.organization>stayonsl1</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.login>6203881d90686f75d0687c482c37f2106cdee824</sonar.login>
 
-        <!-- Integración JaCoCo + Sonar (Práctica 6) -->
+        
+
+        <!-- Integración JaCoCo + Sonar -->
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.jacoco.reportPath>${project.basedir}/target/jacoco.exec</sonar.jacoco.reportPath>
@@ -77,8 +125,7 @@
         </dependency>
 
         <!-- NO añadimos junit-platform-launcher ni junit-jupiter extra
-             para no romper la versión que gestiona Spring Boot / Surefire
-             (Las versiones 6.0.1 que venian en los pdf guia generaban errores de incompatibilidad de versiones) -->
+             para no romper la versión que gestiona Spring Boot / Surefire -->
     </dependencies>
 
     <build>
@@ -99,7 +146,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Maven Site (para generar target/site) – Práctica 6 -->
+            <!-- Maven Site (para generar target/site) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
@@ -112,7 +159,6 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.4</version>
                 <configuration>
-                    <!-- Recomendado con Java 21 + JUnit -->
                     <useModulePath>false</useModulePath>
                 </configuration>
             </plugin>
@@ -138,10 +184,17 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Sonar Maven Plugin (para poder usar sonar:sonar) -->
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.11.0.3922</version>
+            </plugin>
         </plugins>
     </build>
 
-    <!-- Reporting: Surefire, JXR, JaCoCo, info del proyecto – Práctica 6 -->
+    <!-- Reporting: Surefire, JXR, JaCoCo, info del proyecto -->
     <reporting>
         <plugins>
             <!-- Información general del proyecto -->

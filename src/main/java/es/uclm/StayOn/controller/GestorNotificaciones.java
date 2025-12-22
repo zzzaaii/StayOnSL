@@ -1,9 +1,9 @@
 package es.uclm.StayOn.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
 import es.uclm.StayOn.persistence.NotificacionDAO;
 import es.uclm.StayOn.entity.*;
 
@@ -14,19 +14,26 @@ import java.util.*;
 @RequestMapping("/notificaciones")
 public class GestorNotificaciones {
 
-    @Autowired
-    private NotificacionDAO notificacionDAO;
+    private static final String SESSION_USUARIO = "usuario";
+    private static final String REDIRECT_LOGIN = "redirect:/login";
+    private static final String REDIRECT_NOTIFICACIONES = "redirect:/notificaciones";
 
-   
-    //  SECCIÓN 1: MOSTRAR Y GESTIONAR NOTIFICACIONES
- 
+    private final NotificacionDAO notificacionDAO;
+
+    public GestorNotificaciones(NotificacionDAO notificacionDAO) {
+        this.notificacionDAO = notificacionDAO;
+    }
+
+    // SECCIÓN 1: MOSTRAR Y GESTIONAR NOTIFICACIONES
 
     @GetMapping
     public String verNotificaciones(HttpSession session, Model model) {
-        Usuario usuario = (Usuario) session.getAttribute("usuario");
-        if (usuario == null) return "redirect:/login";
+        Usuario usuario = (Usuario) session.getAttribute(SESSION_USUARIO);
+        if (usuario == null) return REDIRECT_LOGIN;
 
-        List<Notificacion> notificaciones = notificacionDAO.findByUsuarioDestinoOrderByFechaDesc(usuario);
+        List<Notificacion> notificaciones =
+                notificacionDAO.findByUsuarioDestinoOrderByFechaDesc(usuario);
+
         model.addAttribute("notificaciones", notificaciones);
         model.addAttribute("esInquilino", usuario instanceof Inquilino);
         model.addAttribute("esPropietario", usuario instanceof Propietario);
@@ -36,33 +43,39 @@ public class GestorNotificaciones {
 
     @GetMapping("/leida/{id}")
     public String marcarComoLeida(@PathVariable Long id, HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuario");
-        if (usuario == null) return "redirect:/login";
+        Usuario usuario = (Usuario) session.getAttribute(SESSION_USUARIO);
+        if (usuario == null) return REDIRECT_LOGIN;
 
         Notificacion notificacion = notificacionDAO.findById(id).orElse(null);
-        if (notificacion != null && notificacion.getUsuarioDestino().getId().equals(usuario.getId())) {
+        if (notificacion != null
+                && notificacion.getUsuarioDestino() != null
+                && notificacion.getUsuarioDestino().getId() != null
+                && notificacion.getUsuarioDestino().getId().equals(usuario.getId())) {
             notificacion.setLeido(true);
             notificacionDAO.save(notificacion);
         }
 
-        return "redirect:/notificaciones";
+        return REDIRECT_NOTIFICACIONES;
     }
 
     @GetMapping("/limpiar")
     public String limpiarLeidas(HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuario");
-        if (usuario == null) return "redirect:/login";
+        Usuario usuario = (Usuario) session.getAttribute(SESSION_USUARIO);
+        if (usuario == null) return REDIRECT_LOGIN;
 
-        List<Notificacion> notificaciones = notificacionDAO.findByUsuarioDestinoOrderByFechaDesc(usuario);
-        notificaciones.stream().filter(Notificacion::isLeido).forEach(notificacionDAO::delete);
-        return "redirect:/notificaciones";
+        List<Notificacion> notificaciones =
+                notificacionDAO.findByUsuarioDestinoOrderByFechaDesc(usuario);
+
+        notificaciones.stream()
+                .filter(Notificacion::isLeido)
+                .forEach(notificacionDAO::delete);
+
+        return REDIRECT_NOTIFICACIONES;
     }
 
-   
-    //  SECCIÓN 2: MÉTODOS PARA CREAR NOTIFICACIONES
-  
+    // SECCIÓN 2: MÉTODOS PARA CREAR NOTIFICACIONES
 
-    // Método genérico para enviar cualquier tipo de notificación 
+    // Método genérico para enviar cualquier tipo de notificación
     public void enviar(Usuario destino, String tipo, String mensaje) {
         if (destino == null || mensaje == null || mensaje.isBlank()) return;
 
@@ -75,9 +88,7 @@ public class GestorNotificaciones {
         notificacionDAO.save(n);
     }
 
-
-    //  EVENTOS DE RESERVAS
-  
+    // EVENTOS DE RESERVAS
 
     public void nuevaReserva(Propietario propietario, Inmueble inmueble) {
         enviar(propietario, "RESERVA_NUEVA",
@@ -109,9 +120,7 @@ public class GestorNotificaciones {
                 "🕓 Tu reserva en " + inmueble.getDireccion() + " comienza mañana.");
     }
 
-  
     // EVENTOS DE INMUEBLES
-   
 
     public void inmueblePublicado(Propietario propietario, Inmueble inmueble) {
         enviar(propietario, "INMUEBLE_PUBLICADO",
@@ -123,9 +132,7 @@ public class GestorNotificaciones {
                 "✏️ Has actualizado la información de tu inmueble: " + inmueble.getDireccion());
     }
 
-   
     // EVENTOS DE PAGOS
-    
 
     public void pagoConfirmado(Inquilino inquilino, Reserva reserva) {
         enviar(inquilino, "PAGO_CONFIRMADO",
@@ -136,18 +143,18 @@ public class GestorNotificaciones {
         enviar(propietario, "PAGO_RECIBIDO",
                 "💰 Has recibido el pago de la reserva en " + reserva.getDireccion() + ".");
     }
- 
- //  SECCIÓN 3: ENDPOINT PARA CONTADOR AJAX
 
- @GetMapping("/noLeidas")
- @ResponseBody
- public long contarNoLeidas(HttpSession session) {
-     Usuario usuario = (Usuario) session.getAttribute("usuario");
-     if (usuario == null) return 0;
-     return notificacionDAO.findByUsuarioDestinoOrderByFechaDesc(usuario)
-             .stream()
-             .filter(n -> !n.isLeido())
-             .count();
- }
+    // SECCIÓN 3: ENDPOINT PARA CONTADOR AJAX
 
+    @GetMapping("/noLeidas")
+    @ResponseBody
+    public long contarNoLeidas(HttpSession session) {
+        Usuario usuario = (Usuario) session.getAttribute(SESSION_USUARIO);
+        if (usuario == null) return 0;
+
+        return notificacionDAO.findByUsuarioDestinoOrderByFechaDesc(usuario)
+                .stream()
+                .filter(n -> !n.isLeido())
+                .count();
+    }
 }

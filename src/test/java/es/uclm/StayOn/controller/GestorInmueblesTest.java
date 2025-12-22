@@ -6,16 +6,19 @@ import es.uclm.StayOn.entity.Propietario;
 import es.uclm.StayOn.persistence.DisponibilidadDAO;
 import es.uclm.StayOn.persistence.InmuebleDAO;
 import es.uclm.StayOn.persistence.ReservaDAO;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -27,30 +30,39 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(
-        controllers = GestorInmuebles.class,
-        excludeAutoConfiguration = {
-                SecurityAutoConfiguration.class,
-                SecurityFilterAutoConfiguration.class
-        }
-)
-@AutoConfigureMockMvc(addFilters = false)
 class GestorInmueblesTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
     private InmuebleDAO inmuebleDAO;
 
-    @MockBean
+    @Mock
     private DisponibilidadDAO disponibilidadDAO;
 
-    @MockBean
+    @Mock
     private ReservaDAO reservaDAO;
 
-    @MockBean
+    @Mock
     private GestorNotificaciones gestorNotificaciones;
+
+    @InjectMocks
+    private GestorInmuebles gestorInmuebles;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+       
+        InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
+        viewResolver.setPrefix("/templates/");
+        viewResolver.setSuffix(".html");
+
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(gestorInmuebles)
+                .setViewResolvers(viewResolver)
+                .build();
+    }
 
     private static Date d(String yyyyMmDd) throws Exception {
         return new SimpleDateFormat("yyyy-MM-dd").parse(yyyyMmDd);
@@ -82,8 +94,6 @@ class GestorInmueblesTest {
         return d;
     }
 
-   
-
     @Test
     @DisplayName("GET /gestionInmuebles -> lista inmuebles del propietario filtrando nulls y eliminados")
     void listarInmuebles_filtraEliminadosYNulls() throws Exception {
@@ -100,11 +110,9 @@ class GestorInmueblesTest {
                 .andExpect(view().name("gestionInmuebles"))
                 .andExpect(model().attributeExists("inmuebles"));
 
-       
         verify(inmuebleDAO, times(1)).findByPropietario(p);
     }
 
-    
     @Test
     @DisplayName("GET /gestionInmuebles/nuevo -> devuelve forminmueble con inmueble y disponibilidad inicializada")
     void nuevoInmueble_ok() throws Exception {
@@ -119,8 +127,6 @@ class GestorInmueblesTest {
         Inmueble i = (Inmueble) inm;
         assertThat(i.getDisponibilidad()).isNotNull();
     }
-
-    
 
     @Test
     @DisplayName("GET /gestionInmuebles/editar/{id} -> si no existe redirect a /gestionInmuebles")
@@ -183,21 +189,16 @@ class GestorInmueblesTest {
         assertThat(modelInm.getDisponibilidad()).isNotNull();
     }
 
-   
-
     @Test
     @DisplayName("POST /gestionInmuebles/guardar (nuevo) -> aplica defaults, guarda y notifica publicado")
     void guardar_nuevo_aplicaDefaults_yNotificaPublicado() throws Exception {
         Propietario p = propietario(1L, "Prop");
 
-      
         ArgumentCaptor<Inmueble> captor = ArgumentCaptor.forClass(Inmueble.class);
         when(inmuebleDAO.save(any(Inmueble.class))).thenAnswer(inv -> inv.getArgument(0));
 
         mockMvc.perform(post("/gestionInmuebles/guardar")
-                        .sessionAttr("usuario", p)
-                        
-                )
+                        .sessionAttr("usuario", p))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/gestionInmuebles"));
 
@@ -207,13 +208,11 @@ class GestorInmueblesTest {
         assertThat(guardado.getPropietario()).isNotNull();
         assertThat(guardado.getPropietario().getId()).isEqualTo(1L);
 
-       
         assertThat(guardado.getTipo()).isEqualTo("Vivienda");
         assertThat(guardado.getDireccion()).isEqualTo("Sin dirección");
         assertThat(guardado.getCiudad()).isEqualTo("Sin ciudad");
         assertThat(guardado.getPrecioPorNoche()).isEqualTo(0.0);
 
-       
         verify(disponibilidadDAO, never()).save(any(Disponibilidad.class));
 
         verify(gestorNotificaciones, times(1)).inmueblePublicado(eq(p), any(Inmueble.class));
@@ -240,8 +239,7 @@ class GestorInmueblesTest {
                         .param("ciudad", "Toledo")
                         .param("precioPorNoche", "99.9")
                         .param("disponibilidad.fechaInicio", "2025-12-10")
-                        .param("disponibilidad.fechaFin", "2025-12-20")
-                )
+                        .param("disponibilidad.fechaFin", "2025-12-20"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("forminmueble"))
                 .andExpect(model().attributeExists("error"))
@@ -276,8 +274,7 @@ class GestorInmueblesTest {
                         .param("ciudad", "Toledo")
                         .param("precioPorNoche", "99.9")
                         .param("disponibilidad.fechaInicio", "2025-12-10")
-                        .param("disponibilidad.fechaFin", "2025-12-20")
-                )
+                        .param("disponibilidad.fechaFin", "2025-12-20"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/gestionInmuebles"));
 
@@ -286,9 +283,6 @@ class GestorInmueblesTest {
         verify(gestorNotificaciones, times(1)).inmuebleActualizado(eq(p), any(Inmueble.class));
         verify(gestorNotificaciones, never()).inmueblePublicado(any(), any());
     }
-
- 
-    
 
     @Test
     @DisplayName("GET /gestionInmuebles/eliminar/{id} -> sin reservas activas: borra disponibilidades, borra inmueble y notifica")
@@ -339,8 +333,6 @@ class GestorInmueblesTest {
         verify(disponibilidadDAO, never()).deleteAll(anyList());
     }
 
-    
-
     @Test
     @DisplayName("POST /gestionInmuebles/eliminarConfirmado -> marca eliminado=true, guarda y notifica")
     void eliminarConfirmado_ok() throws Exception {
@@ -363,8 +355,6 @@ class GestorInmueblesTest {
         verify(gestorNotificaciones, times(1)).enviar(eq(p), eq("INMUEBLE_ELIMINADO"), contains("Has retirado tu inmueble"));
     }
 
-    
-
     @Test
     @DisplayName("GET /gestionInmuebles/resultados -> vista resultados con inmuebles=findAll()")
     void resultados_ok() throws Exception {
@@ -377,7 +367,6 @@ class GestorInmueblesTest {
 
         verify(inmuebleDAO, times(1)).findAll();
     }
-
 
     @Test
     @DisplayName("GET /gestionInmuebles/detalle/{id} -> vista detalleInmueble con inmueble (o null si no existe)")

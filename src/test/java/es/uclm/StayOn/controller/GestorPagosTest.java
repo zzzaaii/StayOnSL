@@ -4,18 +4,19 @@ import es.uclm.StayOn.entity.*;
 import es.uclm.StayOn.entity.Reserva.EstadoReserva;
 import es.uclm.StayOn.persistence.PagoDAO;
 import es.uclm.StayOn.persistence.ReservaDAO;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import java.util.Date;
 import java.util.List;
@@ -27,32 +28,37 @@ import static org.mockito.Mockito.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(
-        controllers = GestorPagos.class,
-        excludeAutoConfiguration = {
-                SecurityAutoConfiguration.class,
-                SecurityFilterAutoConfiguration.class
-        }
-)
-@AutoConfigureMockMvc(addFilters = false)
 class GestorPagosTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
     private ReservaDAO reservaDAO;
 
-    @MockBean
+    @Mock
     private PagoDAO pagoDAO;
 
-    @MockBean
+    @Mock
     private GestorNotificaciones gestorNotificaciones;
 
-   
+    @InjectMocks
+    private GestorPagos gestorPagos;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
+        viewResolver.setPrefix("/templates/");
+        viewResolver.setSuffix(".html");
+
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(gestorPagos)
+                .setViewResolvers(viewResolver)
+                .build();
+    }
 
     private static Inquilino inquilinoMinimo(Long id, String nombre) {
         Inquilino i = new Inquilino();
@@ -96,13 +102,11 @@ class GestorPagosTest {
         return r;
     }
 
- 
     @Test
     @DisplayName("GET /pagos -> muestra historial de pagos para inquilino en sesión")
     void verPagos_ok() throws Exception {
         Inquilino inq = inquilinoMinimo(10L, "Ana");
         Propietario prop = propietarioMinimo(20L, "Prop");
-
         Inmueble inm = inmuebleBasico(1L, prop);
 
         Reserva r1 = reservaBasica(1L, inq, inm);
@@ -116,8 +120,7 @@ class GestorPagosTest {
 
         when(pagoDAO.findByReserva_Inquilino(inq)).thenReturn(List.of(p1, p2));
 
-        mockMvc.perform(get("/pagos")
-                        .sessionAttr("usuario", inq))
+        mockMvc.perform(get("/pagos").sessionAttr("usuario", inq))
                 .andExpect(status().isOk())
                 .andExpect(view().name("pagos"))
                 .andExpect(model().attributeExists("pagos"))
@@ -125,9 +128,6 @@ class GestorPagosTest {
 
         verify(pagoDAO, times(1)).findByReserva_Inquilino(inq);
     }
-
-
-
 
     @Test
     @DisplayName("GET /pagos/pagar/{id} -> si reserva no existe redirige a /misReservas")
@@ -197,8 +197,6 @@ class GestorPagosTest {
                 .andExpect(model().attribute("total", 250.0));
     }
 
-  
-
     @Test
     @DisplayName("POST /pagos/procesarPago -> si reserva no existe redirige a /misReservas")
     void procesarPago_reservaNoExiste_redirect() throws Exception {
@@ -234,19 +232,18 @@ class GestorPagosTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/misReservas"));
 
-     
         ArgumentCaptor<Pago> pagoCaptor = ArgumentCaptor.forClass(Pago.class);
         verify(pagoDAO, times(1)).save(pagoCaptor.capture());
         Pago pagoGuardado = pagoCaptor.getValue();
 
         assertThat(pagoGuardado.getReserva()).isNotNull();
         assertThat(pagoGuardado.getReferencia()).isNotBlank();
-        assertThat(pagoGuardado.getReferencia().length()).isEqualTo(10);
+      
+        assertThat(pagoGuardado.getReferencia()).hasSize(10);
         assertThat(pagoGuardado.isReembolsado()).isFalse();
         assertThat(pagoGuardado.getImporteReembolsado()).isEqualTo(0.0);
         assertThat(pagoGuardado.getFechaReembolso()).isNull();
 
-      
         ArgumentCaptor<Reserva> reservaCaptor = ArgumentCaptor.forClass(Reserva.class);
         verify(reservaDAO, times(1)).save(reservaCaptor.capture());
         Reserva reservaGuardada = reservaCaptor.getValue();
@@ -255,12 +252,9 @@ class GestorPagosTest {
         assertThat(reservaGuardada.getEstado()).isEqualTo(EstadoReserva.CONFIRMADA);
         assertThat(reservaGuardada.getPago()).isNotNull();
 
-        
         verify(gestorNotificaciones, times(1)).pagoConfirmado(eq(inq), any(Reserva.class));
         verify(gestorNotificaciones, times(1)).pagoRecibido(eq(prop), any(Reserva.class));
-    }
-
-    
+ }
 
     @Test
     @DisplayName("GET /pagos/cancelar/{id} -> si reserva no existe redirect")
@@ -326,7 +320,6 @@ class GestorPagosTest {
         Propietario prop = propietarioMinimo(20L, "Prop");
         Inmueble inm = inmuebleBasico(1L, prop);
 
-        
         Disponibilidad disp = disponibilidadConPolitica(PoliticaCancelacion.REEMBOLSABLE_50_PER);
         inm.setDisponibilidad(disp);
 
@@ -348,7 +341,6 @@ class GestorPagosTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/misReservas"));
 
-       
         ArgumentCaptor<Pago> pagoCaptor = ArgumentCaptor.forClass(Pago.class);
         verify(pagoDAO, times(1)).save(pagoCaptor.capture());
         Pago pagoActualizado = pagoCaptor.getValue();
@@ -357,7 +349,6 @@ class GestorPagosTest {
         assertThat(pagoActualizado.getImporteReembolsado()).isEqualTo(200.0 * 0.5);
         assertThat(pagoActualizado.getFechaReembolso()).isNotNull();
 
-       
         ArgumentCaptor<Reserva> reservaCaptor = ArgumentCaptor.forClass(Reserva.class);
         verify(reservaDAO, times(1)).save(reservaCaptor.capture());
         Reserva reservaActualizada = reservaCaptor.getValue();
@@ -366,8 +357,9 @@ class GestorPagosTest {
         assertThat(reservaActualizada.getEstado()).isEqualTo(EstadoReserva.RECHAZADA);
 
        
-        verify(gestorNotificaciones, times(1)).reservaCanceladaPorInquilino(eq(prop), eq(inm), eq(inq));
+        verify(gestorNotificaciones, times(1)).reservaCanceladaPorInquilino(prop, inm, inq);
     }
+
     @Test
     @DisplayName("POST /pagos/procesarPago -> si notificación falla entra en catch y NO rompe")
     void procesarPago_notificacionFalla_cubreCatch() throws Exception {
@@ -384,7 +376,6 @@ class GestorPagosTest {
         when(pagoDAO.save(any(Pago.class))).thenAnswer(inv -> inv.getArgument(0));
         when(reservaDAO.save(any(Reserva.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        
         doThrow(new RuntimeException("boom")).when(gestorNotificaciones)
                 .pagoConfirmado(any(Inquilino.class), any(Reserva.class));
 
@@ -393,22 +384,20 @@ class GestorPagosTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/misReservas"));
 
-       
         verify(pagoDAO, times(1)).save(any(Pago.class));
         verify(reservaDAO, times(1)).save(any(Reserva.class));
 
-        
+       
         verify(gestorNotificaciones, times(1)).pagoConfirmado(eq(inq), any(Reserva.class));
     }
 
     @Test
-    @DisplayName("GET /pagos/cancelar/{id} -> reserva confirmada SIN pago: entra rama pago==null, actualiza reserva y notifica")
+    @DisplayName("GET /pagos/cancelar/{id} -> reserva confirmada SIN pago: actualiza reserva y notifica")
     void cancelar_ok_pagoNull_cubreWarning_y_ifPagoNull() throws Exception {
         Inquilino inq = inquilinoMinimo(10L, "Ana");
         Propietario prop = propietarioMinimo(20L, "Prop");
         Inmueble inm = inmuebleBasico(1L, prop);
 
-        
         Disponibilidad disp = new Disponibilidad();
         disp.setPoliticaCancelacion(PoliticaCancelacion.REEMBOLSABLE_50_PER);
         inm.setDisponibilidad(disp);
@@ -417,7 +406,7 @@ class GestorPagosTest {
         r.setPagado(true);
         r.setEstado(EstadoReserva.CONFIRMADA);
         r.setPrecioTotal(200.0);
-        r.setPago(null); 
+        r.setPago(null);
 
         when(reservaDAO.findById(1L)).thenReturn(Optional.of(r));
         when(reservaDAO.save(any(Reserva.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -427,21 +416,20 @@ class GestorPagosTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/misReservas"));
 
-        verify(pagoDAO, never()).save(any()); 
+        verify(pagoDAO, never()).save(any());
         verify(reservaDAO, times(1)).save(any(Reserva.class));
-        verify(gestorNotificaciones, times(1))
-                .reservaCanceladaPorInquilino(eq(prop), eq(inm), eq(inq));
+        verify(gestorNotificaciones, times(1)).reservaCanceladaPorInquilino(prop, inm, inq);
     }
 
     @Test
-    @DisplayName("GET /pagos/cancelar/{id} -> sin politica (inmueble null) => porcentaje 0 y reembolso 0: reembolsado=false, fechaReembolso=null")
+    @DisplayName("GET /pagos/cancelar/{id} -> sin politica (inmueble null) => porcentaje 0 y reembolso 0")
     void cancelar_ok_sinPolitica_reembolsoCero_cubrePorcentaje0_y_fechaNull() throws Exception {
         Inquilino inq = inquilinoMinimo(10L, "Ana");
 
         Reserva r = new Reserva();
         r.setId(1L);
         r.setInquilino(inq);
-        r.setInmueble(null);            
+        r.setInmueble(null);
         r.setPagado(true);
         r.setEstado(EstadoReserva.CONFIRMADA);
         r.setPrecioTotal(100.0);
@@ -463,11 +451,10 @@ class GestorPagosTest {
         verify(pagoDAO).save(capPago.capture());
         Pago actualizado = capPago.getValue();
 
-        assertThat(actualizado.isReembolsado()).isFalse();     
+        assertThat(actualizado.isReembolsado()).isFalse();
         assertThat(actualizado.getImporteReembolsado()).isEqualTo(0.0);
-        assertThat(actualizado.getFechaReembolso()).isNull();  
+        assertThat(actualizado.getFechaReembolso()).isNull();
 
-        
         ArgumentCaptor<Reserva> capRes = ArgumentCaptor.forClass(Reserva.class);
         verify(reservaDAO).save(capRes.capture());
         Reserva resAct = capRes.getValue();
@@ -475,18 +462,16 @@ class GestorPagosTest {
         assertThat(resAct.isPagado()).isFalse();
         assertThat(resAct.getEstado()).isEqualTo(EstadoReserva.RECHAZADA);
 
-        
         verify(gestorNotificaciones, never()).reservaCanceladaPorInquilino(any(), any(), any());
     }
 
     @Test
-    @DisplayName("GET /pagos/cancelar/{id} -> total null => usa 0.0 (ternario), y si notificación falla entra en catch")
+    @DisplayName("GET /pagos/cancelar/{id} -> total null => usa 0.0 y si notificación falla entra en catch")
     void cancelar_totalNull_y_notificacionFalla_cubreTotalTernario_yCatch() throws Exception {
         Inquilino inq = inquilinoMinimo(10L, "Ana");
         Propietario prop = propietarioMinimo(20L, "Prop");
         Inmueble inm = inmuebleBasico(1L, prop);
 
-       
         Disponibilidad disp = new Disponibilidad();
         disp.setPoliticaCancelacion(PoliticaCancelacion.REEMBOLSABLE_50_PER);
         inm.setDisponibilidad(disp);
@@ -494,7 +479,7 @@ class GestorPagosTest {
         Reserva r = reservaBasica(1L, inq, inm);
         r.setPagado(true);
         r.setEstado(EstadoReserva.CONFIRMADA);
-        r.setPrecioTotal(null); 
+        r.setPrecioTotal(null);
 
         Pago pago = new Pago();
         pago.setReserva(r);
@@ -504,7 +489,6 @@ class GestorPagosTest {
         when(pagoDAO.save(any(Pago.class))).thenAnswer(inv -> inv.getArgument(0));
         when(reservaDAO.save(any(Reserva.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        
         doThrow(new RuntimeException("boom")).when(gestorNotificaciones)
                 .reservaCanceladaPorInquilino(any(), any(), any());
 
@@ -513,28 +497,26 @@ class GestorPagosTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/misReservas"));
 
-        
         ArgumentCaptor<Pago> capPago = ArgumentCaptor.forClass(Pago.class);
         verify(pagoDAO).save(capPago.capture());
         Pago pAct = capPago.getValue();
+
         assertThat(pAct.getImporteReembolsado()).isEqualTo(0.0);
         assertThat(pAct.isReembolsado()).isFalse();
         assertThat(pAct.getFechaReembolso()).isNull();
 
-       
         verify(reservaDAO, times(1)).save(any(Reserva.class));
     }
 
     @Test
-    @DisplayName("GET /pagos/cancelar/{id} -> si reserva tiene inquilino null => redirect (cubre rama reserva.getInquilino()==null)")
+    @DisplayName("GET /pagos/cancelar/{id} -> si reserva tiene inquilino null => redirect")
     void cancelar_reservaConInquilinoNull_redirect() throws Exception {
         Inquilino logueado = inquilinoMinimo(10L, "Ana");
-
         Propietario prop = propietarioMinimo(20L, "Prop");
         Inmueble inm = inmuebleBasico(1L, prop);
 
         Reserva r = reservaBasica(1L, null, inm);
-        r.setInquilino(null); 
+        r.setInquilino(null);
         r.setPagado(true);
         r.setEstado(EstadoReserva.CONFIRMADA);
 
@@ -551,16 +533,15 @@ class GestorPagosTest {
     }
 
     @Test
-    @DisplayName("GET /pagos/cancelar/{id} -> pagada=true pero estado != CONFIRMADA => redirect (cubre OR por lado estado)")
+    @DisplayName("GET /pagos/cancelar/{id} -> pagada=true pero estado != CONFIRMADA => redirect")
     void cancelar_pagadaPeroNoConfirmada_redirect() throws Exception {
         Inquilino inq = inquilinoMinimo(10L, "Ana");
-
         Propietario prop = propietarioMinimo(20L, "Prop");
         Inmueble inm = inmuebleBasico(1L, prop);
 
         Reserva r = reservaBasica(1L, inq, inm);
         r.setPagado(true);
-        r.setEstado(EstadoReserva.ACEPTADA); 
+        r.setEstado(EstadoReserva.ACEPTADA);
 
         when(reservaDAO.findById(1L)).thenReturn(Optional.of(r));
 
@@ -575,15 +556,14 @@ class GestorPagosTest {
     }
 
     @Test
-    @DisplayName("GET /pagos/cancelar/{id} -> política NULL (disp existe pero politica null) y pago!=null: reembolso 0 => guarda pago con reembolsado=false")
+    @DisplayName("GET /pagos/cancelar/{id} -> política NULL (disp existe pero politica null): reembolso 0")
     void cancelar_politicaNull_pagoGuardado_reembolsoCero() throws Exception {
         Inquilino inq = inquilinoMinimo(10L, "Ana");
         Propietario prop = propietarioMinimo(20L, "Prop");
         Inmueble inm = inmuebleBasico(1L, prop);
 
-       
         Disponibilidad disp = new Disponibilidad();
-        disp.setPoliticaCancelacion(null); 
+        disp.setPoliticaCancelacion(null);
         inm.setDisponibilidad(disp);
 
         Reserva r = reservaBasica(1L, inq, inm);
@@ -608,7 +588,6 @@ class GestorPagosTest {
         verify(pagoDAO, times(1)).save(capPago.capture());
         Pago pAct = capPago.getValue();
 
-        
         assertThat(pAct.isReembolsado()).isFalse();
         assertThat(pAct.getImporteReembolsado()).isEqualTo(0.0);
         assertThat(pAct.getFechaReembolso()).isNull();
@@ -620,18 +599,17 @@ class GestorPagosTest {
         assertThat(rAct.isPagado()).isFalse();
         assertThat(rAct.getEstado()).isEqualTo(EstadoReserva.RECHAZADA);
 
-        verify(gestorNotificaciones, times(1))
-                .reservaCanceladaPorInquilino(eq(prop), eq(inm), eq(inq));
+        verify(gestorNotificaciones, times(1)).reservaCanceladaPorInquilino(prop, inm, inq);
     }
 
     @Test
-    @DisplayName("GET /pagos/cancelar/{id} -> disponibilidad NULL (cubre rama disponibilidad==null en if de política) con pago!=null")
+    @DisplayName("GET /pagos/cancelar/{id} -> disponibilidad NULL: reembolso 0")
     void cancelar_disponibilidadNull_pagoGuardado_reembolsoCero() throws Exception {
         Inquilino inq = inquilinoMinimo(10L, "Ana");
         Propietario prop = propietarioMinimo(20L, "Prop");
         Inmueble inm = inmuebleBasico(1L, prop);
 
-        inm.setDisponibilidad(null); 
+        inm.setDisponibilidad(null);
 
         Reserva r = reservaBasica(1L, inq, inm);
         r.setPagado(true);
@@ -659,9 +637,9 @@ class GestorPagosTest {
         assertThat(pAct.getImporteReembolsado()).isEqualTo(0.0);
         assertThat(pAct.getFechaReembolso()).isNull();
 
-        verify(gestorNotificaciones, times(1))
-                .reservaCanceladaPorInquilino(eq(prop), eq(inm), eq(inq));
+        verify(gestorNotificaciones, times(1)).reservaCanceladaPorInquilino(prop, inm, inq);
     }
+
     @Test
     void settersBasicos_y_id_y_metodo_ok() {
         Pago p = new Pago();
@@ -674,13 +652,10 @@ class GestorPagosTest {
         p.setMetodo(MetodoPago.TARJETA);
 
         assertThat(p.getId()).isEqualTo(99L);
-
-        
         assertThat(p.getEmailPaypal()).isEqualTo("ana@paypal.com");
         assertThat(p.getCvv()).isEqualTo("123");
         assertThat(p.getFechaCaducidad()).isEqualTo("12/30");
         assertThat(p.getNumeroTarjeta()).isEqualTo("4111111111111111");
         assertThat(p.getMetodo()).isEqualTo(MetodoPago.TARJETA);
     }
-
 }
