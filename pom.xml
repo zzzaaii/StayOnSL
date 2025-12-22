@@ -17,13 +17,13 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
 
-    <!-- ✅ Personalización Maven Site -->
+    
     <name>StayOnSL</name>
     <description>Sistema de alquiler de viviendas entre particulares desarrollado con Spring Boot</description>
-    <!-- Cambia esta URL por la real del repo -->
+    
     <url>https://github.com/USUARIO/StayOnSL</url>
 
-    <!-- ✅ Información del equipo (Project Information -> Team) -->
+    
     <developers>
         <developer>
             <name>Zaida Burgos Rodríguez</name>
@@ -43,21 +43,21 @@
         </developer>
     </developers>
 
-    <!-- ✅ SCM (Project Information -> Source Code Management) -->
+    
     <scm>
-        <!-- Cambia estas URLs por las reales del repo -->
+        
         <connection>scm:git:https://github.com/USUARIO/StayOnSL.git</connection>
         <developerConnection>scm:git:https://github.com/USUARIO/StayOnSL.git</developerConnection>
         <url>https://github.com/zzzaaii/StayOnSL</url>
     </scm>
 
-    <!-- ✅ (Opcional) Gestión de incidencias -->
+    
     <issueManagement>
         <system>GitHub Issues</system>
         <url>https://github.com/zzzaaii/StayOnSL/issues</url>
     </issueManagement>
 
-    <!-- ✅ (Opcional) Licencia (para que no salga vacío) -->
+    
     <licenses>
         <license>
             <name>Uso académico</name>
@@ -70,21 +70,21 @@
         <java.version>21</java.version>
         <start-class>es.uclm.StayOn.StayOnApplication</start-class>
 
-        <!-- SonarCloud -->
+      
         <sonar.projectKey>stayonsl1_StayOnSL</sonar.projectKey>
         <sonar.organization>stayonsl1</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
 
         
 
-        <!-- Integración JaCoCo + Sonar -->
+       
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.jacoco.reportPath>${project.basedir}/target/jacoco.exec</sonar.jacoco.reportPath>
     </properties>
 
     <dependencies>
-        <!-- Spring Boot Web & Thymeleaf -->
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
@@ -94,20 +94,20 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Tomcat como provided -->
+       
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <scope>provided</scope>
         </dependency>
 
-        <!-- Spring Data JPA -->
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-        <!-- Derby DB -->
+        
         <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derby</artifactId>
@@ -117,26 +117,25 @@
             <artifactId>derbytools</artifactId>
         </dependency>
 
-        <!-- Testing Spring Boot (incluye JUnit Jupiter, Mockito, etc.) -->
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
 
-        <!-- NO añadimos junit-platform-launcher ni junit-jupiter extra
-             para no romper la versión que gestiona Spring Boot / Surefire -->
+        
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Spring Boot plugin -->
+            
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- Codificación UTF-8 -->
+            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -146,14 +145,14 @@
                 </configuration>
             </plugin>
 
-            <!-- Maven Site (para generar target/site) -->
+           
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
                 <version>3.12.1</version>
             </plugin>
 
-            <!-- Surefire: ejecución de tests con JUnit Platform -->
+          
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -163,7 +162,7 @@
                 </configuration>
             </plugin>
 
-            <!-- JaCoCo para cobertura (ejecuta el agente y genera informe) -->
+            
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -185,7 +184,7 @@
                 </executions>
             </plugin>
 
-            <!-- Sonar Maven Plugin (para poder usar sonar:sonar) -->
+            
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
@@ -194,17 +193,17 @@
         </plugins>
     </build>
 
-    <!-- Reporting: Surefire, JXR, JaCoCo, info del proyecto -->
+    
     <reporting>
         <plugins>
-            <!-- Información general del proyecto -->
+           
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
                 <version>3.4.5</version>
             </plugin>
 
-            <!-- Informe de resultados de los tests (Surefire) -->
+           
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-report-plugin</artifactId>
@@ -214,14 +213,14 @@
                 </configuration>
             </plugin>
 
-            <!-- Referencias cruzadas al código fuente -->
+            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jxr-plugin</artifactId>
                 <version>3.3.1</version>
             </plugin>
 
-            <!-- Informe HTML de cobertura JaCoCo -->
+           
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
