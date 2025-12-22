@@ -3,47 +3,58 @@ package es.uclm.StayOn.controller;
 import es.uclm.StayOn.entity.*;
 import es.uclm.StayOn.persistence.DeseoDAO;
 import es.uclm.StayOn.persistence.InmuebleDAO;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
+
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(
-        controllers = GestorDeseos.class,
-        excludeAutoConfiguration = {
-                SecurityAutoConfiguration.class,
-                SecurityFilterAutoConfiguration.class
-        }
-)
-@AutoConfigureMockMvc(addFilters = false)
 class GestorDeseosTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
     private DeseoDAO deseoDAO;
 
-    @MockBean
+    @Mock
     private InmuebleDAO inmuebleDAO;
 
+    @InjectMocks
+    private GestorDeseos gestorDeseos;
+
+    @BeforeEach
    
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
+        viewResolver.setPrefix("/WEB-INF/views/");
+        viewResolver.setSuffix(".jsp"); 
+
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(gestorDeseos)
+                .setViewResolvers(viewResolver)
+                .build();
+    }
+
 
     private static Inquilino inquilinoMinimo(Long id, String nombre) {
         Inquilino i = new Inquilino();
@@ -55,7 +66,6 @@ class GestorDeseosTest {
     }
 
     private static Usuario usuarioNoInquilinoMinimo(Long id, String nombre) {
-       
         Usuario u = new Usuario() {};
         u.setId(id);
         u.setNombre(nombre);
@@ -83,8 +93,6 @@ class GestorDeseosTest {
         d.setInmueble(inm);
         return d;
     }
-
-   
 
     @Test
     @DisplayName("GET /misDeseos sin usuario en sesión -> redirect /login")
@@ -116,7 +124,7 @@ class GestorDeseosTest {
         Inmueble inm = inmuebleBasico(1L, "Vivienda", "Madrid", "Calle A");
         Deseo d = deseoBasico(100L, inq, inm);
 
-        when(deseoDAO.findByInquilino(eq(inq))).thenReturn(List.of(d));
+        when(deseoDAO.findByInquilino(inq)).thenReturn(List.of(d));
 
         mockMvc.perform(get("/misDeseos")
                         .sessionAttr("usuario", inq))
@@ -124,10 +132,9 @@ class GestorDeseosTest {
                 .andExpect(view().name("misDeseos"))
                 .andExpect(model().attributeExists("deseos"));
 
-        verify(deseoDAO, times(1)).findByInquilino(eq(inq));
+        verify(deseoDAO, times(1)).findByInquilino(inq);
     }
 
-   
     @Test
     @DisplayName("POST /deseos/add sin sesión -> redirect /login")
     void addDeseo_sinUsuario_redirectLogin() throws Exception {
@@ -176,7 +183,7 @@ class GestorDeseosTest {
         Inmueble inm = inmuebleBasico(1L, "Vivienda", "Madrid", "Calle A");
 
         when(inmuebleDAO.findById(1L)).thenReturn(Optional.of(inm));
-        when(deseoDAO.findByInquilinoAndInmueble(eq(inq), eq(inm))).thenReturn(Optional.empty());
+        when(deseoDAO.findByInquilinoAndInmueble(inq, inm)).thenReturn(Optional.empty());
 
         mockMvc.perform(post("/deseos/add")
                         .param("inmuebleId", "1")
@@ -195,7 +202,7 @@ class GestorDeseosTest {
         Deseo existente = deseoBasico(100L, inq, inm);
 
         when(inmuebleDAO.findById(1L)).thenReturn(Optional.of(inm));
-        when(deseoDAO.findByInquilinoAndInmueble(eq(inq), eq(inm))).thenReturn(Optional.of(existente));
+        when(deseoDAO.findByInquilinoAndInmueble(inq, inm)).thenReturn(Optional.of(existente));
 
         mockMvc.perform(post("/deseos/add")
                         .param("inmuebleId", "1")
@@ -206,7 +213,6 @@ class GestorDeseosTest {
         verify(deseoDAO, never()).save(any(Deseo.class));
     }
 
-  
     @Test
     @DisplayName("POST /deseos/remove sin sesión -> redirect /login")
     void removeDeseo_sinUsuario_redirectLogin() throws Exception {
@@ -256,7 +262,7 @@ class GestorDeseosTest {
         Deseo existente = deseoBasico(100L, inq, inm);
 
         when(inmuebleDAO.findById(1L)).thenReturn(Optional.of(inm));
-        when(deseoDAO.findByInquilinoAndInmueble(eq(inq), eq(inm))).thenReturn(Optional.of(existente));
+        when(deseoDAO.findByInquilinoAndInmueble(inq, inm)).thenReturn(Optional.of(existente));
 
         mockMvc.perform(post("/deseos/remove")
                         .param("inmuebleId", "1")
@@ -264,7 +270,7 @@ class GestorDeseosTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/misDeseos"));
 
-        verify(deseoDAO, times(1)).delete(eq(existente));
+        verify(deseoDAO, times(1)).delete(existente);
     }
 
     @Test
@@ -274,7 +280,7 @@ class GestorDeseosTest {
         Inmueble inm = inmuebleBasico(1L, "Vivienda", "Madrid", "Calle A");
 
         when(inmuebleDAO.findById(1L)).thenReturn(Optional.of(inm));
-        when(deseoDAO.findByInquilinoAndInmueble(eq(inq), eq(inm))).thenReturn(Optional.empty());
+        when(deseoDAO.findByInquilinoAndInmueble(inq, inm)).thenReturn(Optional.empty());
 
         mockMvc.perform(post("/deseos/remove")
                         .param("inmuebleId", "1")
@@ -284,6 +290,7 @@ class GestorDeseosTest {
 
         verify(deseoDAO, never()).delete(any(Deseo.class));
     }
+
     @Test
     void gettersAndSetters_work() {
         Deseo d = new Deseo();

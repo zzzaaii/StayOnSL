@@ -1,6 +1,5 @@
 package es.uclm.StayOn.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,16 +14,23 @@ import jakarta.servlet.http.HttpSession;
 @Controller
 public class GestorUsuarios {
 
-    @Autowired
-    private UsuarioDAO usuarioDAO;
+    private static final String ATTR_ERROR = "error";
 
-    @Autowired
-    private GestorNotificaciones gestorNotificaciones; // añadimos servicio unificado
+    private static final String VIEW_LOGIN = "login";
+    private static final String VIEW_REGISTRO = "registro";
+
+    private final UsuarioDAO usuarioDAO;
+    private final GestorNotificaciones gestorNotificaciones;
+
+    public GestorUsuarios(UsuarioDAO usuarioDAO, GestorNotificaciones gestorNotificaciones) {
+        this.usuarioDAO = usuarioDAO;
+        this.gestorNotificaciones = gestorNotificaciones;
+    }
 
     // Mostrar formulario de registro
     @GetMapping("/registro")
     public String mostrarFormularioRegistro(Model model) {
-        return "registro";
+        return VIEW_REGISTRO;
     }
 
     // Procesar registro
@@ -39,8 +45,8 @@ public class GestorUsuarios {
 
         // Verificar si ya existe el usuario
         if (usuarioDAO.findByLogin(login) != null) {
-            model.addAttribute("error", "El email de usuario ya está registrado.");
-            return "registro";
+            model.addAttribute(ATTR_ERROR, "El email de usuario ya está registrado.");
+            return VIEW_REGISTRO;
         }
 
         Usuario nuevoUsuario;
@@ -59,8 +65,11 @@ public class GestorUsuarios {
         usuarioDAO.save(nuevoUsuario);
 
         // Notificación de bienvenida
-        gestorNotificaciones.enviar(nuevoUsuario, "USUARIO_REGISTRO",
-                "🎉 Bienvenido a StayOn, " + nombre + ". Tu cuenta ha sido creada con éxito.");
+        gestorNotificaciones.enviar(
+                nuevoUsuario,
+                "USUARIO_REGISTRO",
+                "🎉 Bienvenido a StayOn, " + nombre + ". Tu cuenta ha sido creada con éxito."
+        );
 
         return "redirect:/registroExitoso";
     }
@@ -72,7 +81,7 @@ public class GestorUsuarios {
 
     @GetMapping("/login")
     public String mostrarLogin() {
-        return "login";
+        return VIEW_LOGIN;
     }
 
     // Procesar login
@@ -85,20 +94,23 @@ public class GestorUsuarios {
         Usuario usuario = usuarioDAO.findByLogin(login);
 
         if (usuario == null) {
-            model.addAttribute("error", "El usuario no existe.");
-            return "login";
+            model.addAttribute(ATTR_ERROR, "El usuario no existe.");
+            return VIEW_LOGIN;
         }
 
         if (!usuario.getPass().equals(pass)) {
-            model.addAttribute("error", "Contraseña incorrecta.");
-            return "login";
+            model.addAttribute(ATTR_ERROR, "Contraseña incorrecta.");
+            return VIEW_LOGIN;
         }
 
         session.setAttribute("usuario", usuario);
 
         // Notificación de inicio de sesión
-        gestorNotificaciones.enviar(usuario, "LOGIN",
-                "👋 Has iniciado sesión correctamente en StayOn.");
+        gestorNotificaciones.enviar(
+                usuario,
+                "LOGIN",
+                "👋 Has iniciado sesión correctamente en StayOn."
+        );
 
         if (usuario instanceof Propietario) {
             return "redirect:/inicioPropietario";
@@ -107,15 +119,18 @@ public class GestorUsuarios {
         }
     }
 
-    //  Cerrar sesión
+    // Cerrar sesión
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         Usuario usuario = (Usuario) session.getAttribute("usuario");
-        if (usuario != null)
-            gestorNotificaciones.enviar(usuario, "LOGOUT", "👋 Has cerrado sesión en StayOn. ¡Hasta pronto!");
+        if (usuario != null) {
+            gestorNotificaciones.enviar(
+                    usuario,
+                    "LOGOUT",
+                    "👋 Has cerrado sesión en StayOn. ¡Hasta pronto!"
+            );
+        }
         session.invalidate();
         return "redirect:/inicio";
     }
 }
-
-

@@ -2,7 +2,7 @@ package es.uclm.StayOn.entity;
 
 import jakarta.persistence.*;
 import java.util.Date;
-import java.util.UUID;
+
 
 @Entity
 public class Pago {

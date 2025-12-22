@@ -155,17 +155,17 @@
             <td th:text="${p.metodo}"></td>
             <td th:text="${p.reserva.estado}"></td>
 
-            <!-- Importe reembolsado -->
-            <td th:text="${p.reembolsado and p.importeReembolsado != null} ?
-                          ${#numbers.formatDecimal(p.importeReembolsado, 1, 'COMMA', 2, 'POINT')} :
-                          '-'">
-            </td>
+			<!-- Importe reembolsado -->
+			<td th:text="${(p.reembolsado and p.importeReembolsado != null)
+			              ? #numbers.formatDecimal(p.importeReembolsado, 1, 'COMMA', 2, 'POINT')
+			              : '-'}">
+			</td>
 
-            <!-- Fecha reembolso -->
-            <td th:text="${p.reembolsado and p.fechaReembolso != null} ?
-                          ${#dates.format(p.fechaReembolso, 'dd/MM/yyyy HH:mm')} :
-                          '-'">
-            </td>
+			<!-- Fecha reembolso -->
+			<td th:text="${(p.reembolsado and p.fechaReembolso != null)
+			              ? #dates.format(p.fechaReembolso, 'dd/MM/yyyy HH:mm')
+			              : '-'}">
+			</td>
         </tr>
         </tbody>
     </table>

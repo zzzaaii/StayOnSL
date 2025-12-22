@@ -72,7 +72,9 @@ class ReservaTest {
         Reserva r = new Reserva();
         r.setFechaInicio(null);
         r.setFechaFin(null);
-        assertThat(r.getNoches()).isEqualTo(0);
+
+        
+        assertThat(r.getNoches()).isZero();
     }
 
     @Test
@@ -81,7 +83,7 @@ class ReservaTest {
         Reserva r = new Reserva();
 
         java.sql.Date ini = java.sql.Date.valueOf(LocalDate.of(2026, 6, 1));
-        java.sql.Date fin = java.sql.Date.valueOf(LocalDate.of(2026, 6, 4)); // 3 días
+        java.sql.Date fin = java.sql.Date.valueOf(LocalDate.of(2026, 6, 4));
 
         r.setFechaInicio(ini);
         r.setFechaFin(fin);
@@ -95,7 +97,7 @@ class ReservaTest {
         Reserva r = new Reserva();
 
         r.setFechaInicio(utilFromLocal(LocalDate.of(2026, 6, 1)));
-        r.setFechaFin(utilFromLocal(LocalDate.of(2026, 6, 4))); // 3 días
+        r.setFechaFin(utilFromLocal(LocalDate.of(2026, 6, 4)));
 
         assertThat(r.getNoches()).isEqualTo(3);
     }
@@ -105,7 +107,6 @@ class ReservaTest {
     void getNoches_min1() {
         Reserva r = new Reserva();
 
-        // mismas fechas => between = 0 => 1
         r.setFechaInicio(utilFromLocal(LocalDate.of(2026, 6, 10)));
         r.setFechaFin(utilFromLocal(LocalDate.of(2026, 6, 10)));
 

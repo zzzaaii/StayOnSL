@@ -29,7 +29,7 @@ class DisponibilidadTest {
         disp.setFechaFin(utilDate(2026, 1, 3));
         assertThat(disp.getPrecioTotal()).isNull();
 
-        // inmueble pero falta fechaFin
+        
         Inmueble inm = new Inmueble();
         inm.setPrecioPorNoche(50.0);
         disp.setInmueble(inm);
@@ -46,7 +46,7 @@ class DisponibilidadTest {
         Disponibilidad disp = new Disponibilidad();
         disp.setInmueble(inm);
         disp.setFechaInicio(utilDate(2026, 6, 1));
-        disp.setFechaFin(utilDate(2026, 6, 4)); // 3 noches
+        disp.setFechaFin(utilDate(2026, 6, 4)); 
 
         Double total = disp.getPrecioTotal();
         assertThat(total).isEqualTo(40.0 * 3);
@@ -61,13 +61,13 @@ class DisponibilidadTest {
         Disponibilidad disp = new Disponibilidad();
         disp.setInmueble(inm);
 
-        // mismas fechas -> between = 0 -> fuerza 1 noche
+     
         disp.setFechaInicio(utilDate(2026, 6, 10));
         disp.setFechaFin(utilDate(2026, 6, 10));
 
         assertThat(disp.getPrecioTotal()).isEqualTo(100.0 * 1);
 
-        // fechaFin antes que fechaInicio -> between negativo -> fuerza 1 noche
+        
         disp.setFechaInicio(utilDate(2026, 6, 10));
         disp.setFechaFin(utilDate(2026, 6, 9));
 

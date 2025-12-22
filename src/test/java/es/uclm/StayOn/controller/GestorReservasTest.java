@@ -3,38 +3,57 @@ package es.uclm.StayOn.controller;
 import es.uclm.StayOn.entity.*;
 import es.uclm.StayOn.entity.Reserva.EstadoReserva;
 import es.uclm.StayOn.persistence.ReservaDAO;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(GestorReservas.class)
 class GestorReservasTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
     private ReservaDAO reservaDAO;
 
-    @MockBean
+    @Mock
     private GestorNotificaciones gestorNotificaciones;
 
-    
+    @InjectMocks
+    private GestorReservas gestorReservas;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
+        viewResolver.setPrefix("/templates/");
+        viewResolver.setSuffix(".html");
+
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(gestorReservas)
+                .setViewResolvers(viewResolver)
+                .build();
+    }
+
     @Test
     @DisplayName("GET /misReservas -> lista reservas del inquilino y vista misReservas")
     void listarReservas_ok() throws Exception {
@@ -51,7 +70,6 @@ class GestorReservasTest {
         verify(reservaDAO, times(1)).findByInquilino(inq);
     }
 
-    
     @Test
     @DisplayName("GET /misReservas/propietario -> lista reservas del propietario y vista reservasPropietario")
     void listarReservasPropietario_ok() throws Exception {
@@ -70,7 +88,6 @@ class GestorReservasTest {
         verify(reservaDAO, times(1)).findByInmueblePropietario(prop);
     }
 
-    
     @Test
     @DisplayName("GET /misReservas/nueva -> devuelve formReserva con atributo reserva")
     void nuevaReserva_ok() throws Exception {
@@ -81,12 +98,11 @@ class GestorReservasTest {
                 .andExpect(model().attributeExists("reserva"));
     }
 
-    
     @Test
     @DisplayName("POST /misReservas/guardar -> si faltan datos básicos redirige /misReservas")
     void guardarReserva_faltanDatos_redirect() throws Exception {
         Inquilino inq = inquilinoMinimo(10L, "Ana");
-        Reserva reserva = new Reserva(); 
+        Reserva reserva = new Reserva();
 
         mockMvc.perform(post("/misReservas/guardar")
                         .sessionAttr("usuario", inq)
@@ -109,7 +125,7 @@ class GestorReservasTest {
         Reserva reserva = new Reserva();
         reserva.setInmueble(inm);
         reserva.setFechaInicio(d(2026, 5, 10));
-        reserva.setFechaFin(d(2026, 5, 10)); 
+        reserva.setFechaFin(d(2026, 5, 10));
 
         mockMvc.perform(post("/misReservas/guardar")
                         .sessionAttr("usuario", inq)
@@ -189,7 +205,6 @@ class GestorReservasTest {
         verify(gestorNotificaciones, never()).nuevaReserva(any(), any());
     }
 
-    
     @Test
     @DisplayName("POST /misReservas/guardar -> si NO directa: estado PENDIENTE, guarda y notifica al propietario")
     void guardarReserva_ok_noDirecta_pendiente_yNotifica() throws Exception {
@@ -227,7 +242,7 @@ class GestorReservasTest {
         Inquilino inq = inquilinoMinimo(10L, "Ana");
         Propietario prop = propietarioMinimo(20L, "Prop");
         Inmueble inm = inmuebleBasico(100L, prop);
-        inm.setDisponibilidad(disponibilidadRango(d(2026, 1, 1), d(2026, 12, 31), true));  
+        inm.setDisponibilidad(disponibilidadRango(d(2026, 1, 1), d(2026, 12, 31), true));
 
         Reserva reserva = new Reserva();
         reserva.setInmueble(inm);
@@ -261,7 +276,7 @@ class GestorReservasTest {
         inm.setDireccion("Calle X");
         inm.setCiudad("Talavera");
         inm.setPrecioPorNoche(10.0);
-        inm.setPropietario(null); 
+        inm.setPropietario(null);
         inm.setDisponibilidad(disponibilidadRango(d(2026, 1, 1), d(2026, 12, 31), true));
 
         Reserva reserva = new Reserva();
@@ -281,7 +296,6 @@ class GestorReservasTest {
         verify(gestorNotificaciones, never()).nuevaReserva(any(), any());
     }
 
-    
     @Test
     @DisplayName("GET /misReservas/aceptar/{id} -> si existe, pone ACEPTADA, guarda y notifica reservaConfirmada")
     void aceptarReserva_ok() throws Exception {
@@ -318,7 +332,6 @@ class GestorReservasTest {
         verify(gestorNotificaciones, never()).reservaConfirmada(any(), any());
     }
 
-    
     @Test
     @DisplayName("GET /misReservas/rechazar/{id} -> pone RECHAZADA, pagado=false, guarda y notifica reservaRechazada")
     void rechazarReserva_ok() throws Exception {
@@ -338,7 +351,7 @@ class GestorReservasTest {
                 .andExpect(redirectedUrl("/misReservas/propietario"));
 
         assertThat(reserva.getEstado()).isEqualTo(EstadoReserva.RECHAZADA);
-        assertThat(reserva.isPagado()).isFalse(); 
+        assertThat(reserva.isPagado()).isFalse();
         verify(reservaDAO, times(1)).save(reserva);
         verify(gestorNotificaciones, times(1)).reservaRechazada(inq, inm);
     }
@@ -357,7 +370,6 @@ class GestorReservasTest {
         verify(gestorNotificaciones, never()).reservaRechazada(any(), any());
     }
 
-    
     @Test
     @DisplayName("GET /misReservas/eliminar/{id} -> si reserva null: inquilino -> /misReservas")
     void eliminarReserva_noExiste_inquilino_redirect() throws Exception {
@@ -399,8 +411,7 @@ class GestorReservasTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/misReservas"));
 
-        verify(gestorNotificaciones, times(1))
-                .reservaCanceladaPorInquilino(prop, inm, inq);
+        verify(gestorNotificaciones, times(1)).reservaCanceladaPorInquilino(prop, inm, inq);
         verify(reservaDAO, times(1)).delete(reserva);
     }
 
@@ -419,12 +430,12 @@ class GestorReservasTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/misReservas/propietario"));
 
-        verify(gestorNotificaciones, times(1))
-                .reservaCanceladaPorPropietario(inq, inm, prop);
+        verify(gestorNotificaciones, times(1)).reservaCanceladaPorPropietario(inq, inm, prop);
         verify(reservaDAO, times(1)).delete(reserva);
     }
 
-    
+   
+
     private static Date d(int year, int month, int day) {
         return java.sql.Date.valueOf(java.time.LocalDate.of(year, month, day));
     }
@@ -451,7 +462,6 @@ class GestorReservasTest {
         inm.setCiudad("Talavera");
         inm.setPrecioPorNoche(25.0);
         inm.setPropietario(propietario);
-        
         return inm;
     }
 
@@ -474,17 +484,19 @@ class GestorReservasTest {
         r.setEstado(EstadoReserva.PENDIENTE);
         return r;
     }
+
+    
+
     @Test
     @DisplayName("procesarDevolucion(null) -> return inmediato (cubre rama reserva==null)")
     void procesarDevolucion_null_cubreBranch() throws Exception {
-        GestorReservas controller = new GestorReservas();
-
         Method m = GestorReservas.class.getDeclaredMethod("procesarDevolucion", Reserva.class);
         m.setAccessible(true);
 
         
-        m.invoke(controller, new Object[]{null});
+        assertDoesNotThrow(() -> m.invoke(gestorReservas, new Object[]{null}));
     }
+
     @Test
     @DisplayName("GET /misReservas/aceptar/{id} -> si notificación falla entra en catch y NO rompe")
     void aceptarReserva_notificacionFalla_cubreCatch() throws Exception {
@@ -506,8 +518,10 @@ class GestorReservasTest {
                 .andExpect(redirectedUrl("/misReservas/propietario"));
 
         verify(reservaDAO, times(1)).save(reserva);
-        verify(gestorNotificaciones, times(1)).reservaConfirmada(eq(inq), eq(inm));
+        
+        verify(gestorNotificaciones, times(1)).reservaConfirmada(inq, inm);
     }
+
     @Test
     @DisplayName("GET /misReservas/rechazar/{id} -> si notificación falla entra en catch y deja pagado=false (cubre catch + procesarDevolucion)")
     void rechazarReserva_notificacionFalla_cubreCatch_yDevolucion() throws Exception {
@@ -516,7 +530,7 @@ class GestorReservasTest {
         Inmueble inm = inmuebleBasico(100L, prop);
 
         Reserva reserva = reservaBasica(1L, inq, inm);
-        reserva.setPagado(true); 
+        reserva.setPagado(true);
         reserva.setEstado(EstadoReserva.PENDIENTE);
 
         when(reservaDAO.findById(1L)).thenReturn(java.util.Optional.of(reserva));
@@ -530,11 +544,12 @@ class GestorReservasTest {
                 .andExpect(redirectedUrl("/misReservas/propietario"));
 
         assertThat(reserva.getEstado()).isEqualTo(EstadoReserva.RECHAZADA);
-        assertThat(reserva.isPagado()).isFalse(); 
+        assertThat(reserva.isPagado()).isFalse();
         verify(reservaDAO, times(1)).save(reserva);
-        verify(gestorNotificaciones, times(1)).reservaRechazada(eq(inq), eq(inm));
+       
+        verify(gestorNotificaciones, times(1)).reservaRechazada(inq, inm);
     }
-    
+
     @Test
     @DisplayName("POST /misReservas/guardar -> notificación falla entra en catch y NO rompe (cubre catch)")
     void guardarReserva_notificacionFalla_cubreCatch() throws Exception {
@@ -550,8 +565,9 @@ class GestorReservasTest {
 
         when(reservaDAO.existsSolapamiento(eq(100L), any(Date.class), any(Date.class))).thenReturn(false);
 
+        
         doThrow(new RuntimeException("boom"))
-                .when(gestorNotificaciones).nuevaReserva(eq(prop), eq(inm));
+                .when(gestorNotificaciones).nuevaReserva(prop, inm);
 
         mockMvc.perform(post("/misReservas/guardar")
                         .sessionAttr("usuario", inq)
@@ -560,8 +576,9 @@ class GestorReservasTest {
                 .andExpect(redirectedUrl("/misReservas"));
 
         verify(reservaDAO, times(1)).save(any(Reserva.class));
-        verify(gestorNotificaciones, times(1)).nuevaReserva(eq(prop), eq(inm));
+        verify(gestorNotificaciones, times(1)).nuevaReserva(prop, inm);
     }
+
     @Test
     @DisplayName("GET /misReservas/eliminar/{id} -> si notificación lanza excepción entra en catch y redirige /misReservas (cubre catch)")
     void eliminarReserva_catch_notificacionFalla() throws Exception {
@@ -572,23 +589,23 @@ class GestorReservasTest {
 
         when(reservaDAO.findById(1L)).thenReturn(java.util.Optional.of(reserva));
 
+        
         doThrow(new RuntimeException("boom"))
                 .when(gestorNotificaciones)
-                .reservaCanceladaPorInquilino(eq(prop), eq(inm), eq(inq));
+                .reservaCanceladaPorInquilino(prop, inm, inq);
 
         mockMvc.perform(get("/misReservas/eliminar/1")
                         .sessionAttr("usuario", inq))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/misReservas"));
 
-       
         verify(reservaDAO, never()).delete(any());
     }
 
     @Test
     @DisplayName("GET /misReservas/eliminar/{id} -> usuario genérico (no Inquilino/Propietario) redirige /misReservas")
     void eliminarReserva_usuarioGenerico_redirectFinal() throws Exception {
-        Usuario u = mock(Usuario.class); 
+        Usuario u = mock(Usuario.class);
 
         Inquilino inq = inquilinoMinimo(10L, "Ana");
         Propietario prop = propietarioMinimo(20L, "Prop");
@@ -607,15 +624,13 @@ class GestorReservasTest {
         verify(reservaDAO, never()).delete(any());
     }
 
-    
-    
     @Test
     @DisplayName("POST /misReservas/guardar -> inmueble con id null redirige /misReservas (cubre rama inmueble.getId()==null)")
     void guardarReserva_inmuebleIdNull_redirect() throws Exception {
         Inquilino inq = inquilinoMinimo(10L, "Ana");
 
         Inmueble inm = new Inmueble();
-        inm.setId(null); 
+        inm.setId(null);
 
         Reserva reserva = new Reserva();
         reserva.setInmueble(inm);
@@ -630,6 +645,7 @@ class GestorReservasTest {
 
         verify(reservaDAO, never()).save(any());
     }
+
     @Test
     @DisplayName("POST /misReservas/guardar -> fechaInicio null redirige (cubre reserva.getFechaInicio()==null)")
     void guardarReserva_fechaInicioNull_redirect() throws Exception {
@@ -641,7 +657,7 @@ class GestorReservasTest {
 
         Reserva reserva = new Reserva();
         reserva.setInmueble(inm);
-        reserva.setFechaInicio(null); 
+        reserva.setFechaInicio(null);
         reserva.setFechaFin(d(2026, 5, 12));
 
         mockMvc.perform(post("/misReservas/guardar")
@@ -666,7 +682,7 @@ class GestorReservasTest {
         Reserva reserva = new Reserva();
         reserva.setInmueble(inm);
         reserva.setFechaInicio(d(2026, 5, 10));
-        reserva.setFechaFin(null); 
+        reserva.setFechaFin(null);
 
         mockMvc.perform(post("/misReservas/guardar")
                         .sessionAttr("usuario", inq)
@@ -687,7 +703,7 @@ class GestorReservasTest {
         Inmueble inm = inmuebleBasico(100L, prop);
 
         Disponibilidad disp = new Disponibilidad();
-        disp.setFechaInicio(null); 
+        disp.setFechaInicio(null);
         disp.setFechaFin(d(2026, 12, 31));
         disp.setDirecta(true);
         inm.setDisponibilidad(disp);
@@ -717,7 +733,7 @@ class GestorReservasTest {
 
         Disponibilidad disp = new Disponibilidad();
         disp.setFechaInicio(d(2026, 1, 1));
-        disp.setFechaFin(null); 
+        disp.setFechaFin(null);
         disp.setDirecta(true);
         inm.setDisponibilidad(disp);
 
@@ -743,13 +759,12 @@ class GestorReservasTest {
         Propietario prop = propietarioMinimo(20L, "Prop");
 
         Inmueble inm = inmuebleBasico(100L, prop);
-
         inm.setDisponibilidad(disponibilidadRango(d(2026, 6, 1), d(2026, 6, 30), false));
 
         Reserva reserva = new Reserva();
         reserva.setInmueble(inm);
-        reserva.setFechaInicio(d(2026, 6, 10)); 
-        reserva.setFechaFin(d(2026, 7, 2));     
+        reserva.setFechaInicio(d(2026, 6, 10));
+        reserva.setFechaFin(d(2026, 7, 2));
 
         mockMvc.perform(post("/misReservas/guardar")
                         .sessionAttr("usuario", inq)
@@ -760,11 +775,4 @@ class GestorReservasTest {
         verify(reservaDAO, never()).save(any());
         verify(gestorNotificaciones, never()).nuevaReserva(any(), any());
     }
-    
-
-    
-
-
-
-    
 }

@@ -6,13 +6,19 @@ import es.uclm.StayOn.entity.Propietario;
 import es.uclm.StayOn.entity.Reserva;
 import es.uclm.StayOn.entity.Usuario;
 import es.uclm.StayOn.persistence.UsuarioDAO;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import java.util.List;
 
@@ -23,19 +29,34 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(GestorUsuarios.class)
 class GestorUsuariosTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
     private UsuarioDAO usuarioDAO;
 
-    @MockBean
+    @Mock
     private GestorNotificaciones gestorNotificaciones;
 
-  
+    @InjectMocks
+    private GestorUsuarios gestorUsuarios;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        
+        InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
+        viewResolver.setPrefix("/templates/");
+        viewResolver.setSuffix(".html");
+
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(gestorUsuarios)
+                .setViewResolvers(viewResolver)
+                .build();
+    }
+
     @Test
     @DisplayName("GET /registro -> devuelve vista registro")
     void mostrarFormularioRegistro_ok() throws Exception {
@@ -44,7 +65,6 @@ class GestorUsuariosTest {
                 .andExpect(view().name("registro"));
     }
 
-    
     @Test
     @DisplayName("POST /registro -> si login ya existe: vuelve a registro con error")
     void registrarUsuario_loginYaExiste_devuelveRegistroConError() throws Exception {
@@ -127,7 +147,6 @@ class GestorUsuariosTest {
         );
     }
 
-    
     @Test
     @DisplayName("GET /registroExitoso -> devuelve vista registroExitoso")
     void registroExitoso_ok() throws Exception {
@@ -136,7 +155,6 @@ class GestorUsuariosTest {
                 .andExpect(view().name("registroExitoso"));
     }
 
- 
     @Test
     @DisplayName("GET /login -> devuelve vista login")
     void mostrarLogin_ok() throws Exception {
@@ -145,7 +163,6 @@ class GestorUsuariosTest {
                 .andExpect(view().name("login"));
     }
 
-   
     @Test
     @DisplayName("POST /login -> usuario no existe: vuelve a login con error")
     void login_usuarioNoExiste_devuelveLoginConError() throws Exception {
@@ -229,7 +246,6 @@ class GestorUsuariosTest {
         );
     }
 
- 
     @Test
     @DisplayName("GET /logout -> si hay usuario en sesión: notifica LOGOUT e invalida y redirect /inicio")
     void logout_conUsuario_notificaYRedirect() throws Exception {
@@ -258,6 +274,7 @@ class GestorUsuariosTest {
 
         verify(gestorNotificaciones, never()).enviar(any(), anyString(), anyString());
     }
+
     @Test
     void getYSetInmuebles_ok() {
         Propietario propietario = new Propietario();
@@ -274,7 +291,7 @@ class GestorUsuariosTest {
                 .hasSize(2)
                 .containsExactly(i1, i2);
     }
-    
+
     @Test
     void getYSetReservas_ok() {
         Inquilino inquilino = new Inquilino();
@@ -291,17 +308,13 @@ class GestorUsuariosTest {
                 .hasSize(2)
                 .containsExactly(r1, r2);
     }
+
     @Test
     void getYSetAttribute_ok() {
-        Usuario usuario = new Usuario() {
-            
-        };
+        Usuario usuario = new Usuario() { };
 
         usuario.setAttribute(42);
 
         assertThat(usuario.getAttribute()).isEqualTo(42);
     }
-    
-    
-    
 }

@@ -2,43 +2,56 @@ package es.uclm.StayOn.controller;
 
 import es.uclm.StayOn.entity.*;
 import es.uclm.StayOn.persistence.NotificacionDAO;
-import jakarta.servlet.http.HttpSession;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
 import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(
-        controllers = GestorNotificaciones.class,
-        excludeAutoConfiguration = {
-                SecurityAutoConfiguration.class,
-                SecurityFilterAutoConfiguration.class
-        }
-)
-@AutoConfigureMockMvc(addFilters = false)
 class GestorNotificacionesTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
     private NotificacionDAO notificacionDAO;
 
-   
+    @InjectMocks
+    private GestorNotificaciones gestorNotificacionesController;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        
+        InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
+        viewResolver.setPrefix("/templates/");
+        viewResolver.setSuffix(".html");
+
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(gestorNotificacionesController)
+                .setViewResolvers(viewResolver)
+                .build();
+    }
 
     private static Inquilino inquilinoConId(long id) {
         Inquilino i = new Inquilino();
@@ -75,10 +88,8 @@ class GestorNotificacionesTest {
         inm.setPrecioPorNoche(50.0);
         inm.setPropietario(propietarioConId(99L));
         r.setInmueble(inm);
-       
         return r;
     }
-
 
     private static Notificacion noti(Long id, Usuario destino, boolean leida) {
         Notificacion n = new Notificacion();
@@ -92,14 +103,22 @@ class GestorNotificacionesTest {
     }
 
     
-    @Test
-    @DisplayName("GET /notificaciones sin usuario en sesión -> redirect /login")
-    void verNotificaciones_sinSesion_redirectLogin() throws Exception {
-        mockMvc.perform(get("/notificaciones"))
+
+    @ParameterizedTest(name = "Sin sesión: GET {0} -> redirect /login")
+    @ValueSource(strings = {
+            "/notificaciones",
+            "/notificaciones/leida/10",
+            "/notificaciones/limpiar"
+    })
+    void endpoints_sinSesion_redirectLogin(String path) throws Exception {
+        mockMvc.perform(get(path))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
+
         verifyNoInteractions(notificacionDAO);
     }
+
+  
 
     @Test
     @DisplayName("GET /notificaciones con Inquilino -> vista notificaciones + model correcto")
@@ -136,16 +155,7 @@ class GestorNotificacionesTest {
         verify(notificacionDAO, times(1)).findByUsuarioDestinoOrderByFechaDesc(prop);
     }
 
-
-
-    @Test
-    @DisplayName("GET /notificaciones/leida/{id} sin sesión -> redirect /login")
-    void marcarLeida_sinSesion_redirectLogin() throws Exception {
-        mockMvc.perform(get("/notificaciones/leida/10"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"));
-        verifyNoInteractions(notificacionDAO);
-    }
+  
 
     @Test
     @DisplayName("GET /notificaciones/leida/{id} si no existe -> redirect /notificaciones y no guarda")
@@ -198,16 +208,7 @@ class GestorNotificacionesTest {
         assertThat(guardada.isLeido()).isTrue();
     }
 
-  
-
-    @Test
-    @DisplayName("GET /notificaciones/limpiar sin sesión -> redirect /login")
-    void limpiarLeidas_sinSesion_redirectLogin() throws Exception {
-        mockMvc.perform(get("/notificaciones/limpiar"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"));
-        verifyNoInteractions(notificacionDAO);
-    }
+   
 
     @Test
     @DisplayName("GET /notificaciones/limpiar con sesión -> borra solo leídas")
@@ -231,6 +232,7 @@ class GestorNotificacionesTest {
         verify(notificacionDAO, times(1)).delete(leida2);
     }
 
+    
 
     @Test
     @DisplayName("GET /notificaciones/noLeidas sin sesión -> devuelve 0")
@@ -260,20 +262,12 @@ class GestorNotificacionesTest {
         verify(notificacionDAO, times(1)).findByUsuarioDestinoOrderByFechaDesc(inq);
     }
 
-  
+   
 
     @Test
     @DisplayName("enviar(): destino null o mensaje vacío -> no guarda")
     void enviar_validaciones_noGuarda() {
-        GestorNotificaciones gn = new GestorNotificaciones();
-       
-        try {
-            var f = GestorNotificaciones.class.getDeclaredField("notificacionDAO");
-            f.setAccessible(true);
-            f.set(gn, notificacionDAO);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        GestorNotificaciones gn = new GestorNotificaciones(notificacionDAO);
 
         gn.enviar(null, "X", "hola");
         gn.enviar(inquilinoConId(1L), "X", "");
@@ -285,14 +279,7 @@ class GestorNotificacionesTest {
     @Test
     @DisplayName("enviar(): crea notificación con leido=false, fecha no null y guarda")
     void enviar_ok_creaYGuarda() {
-        GestorNotificaciones gn = new GestorNotificaciones();
-        try {
-            var f = GestorNotificaciones.class.getDeclaredField("notificacionDAO");
-            f.setAccessible(true);
-            f.set(gn, notificacionDAO);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        GestorNotificaciones gn = new GestorNotificaciones(notificacionDAO);
 
         Inquilino inq = inquilinoConId(1L);
         gn.enviar(inq, "TIPO_TEST", "Mensaje de prueba");
@@ -311,9 +298,7 @@ class GestorNotificacionesTest {
     @Test
     @DisplayName("Eventos de reservas/inmuebles/pagos llaman a enviar() con tipo correcto")
     void eventos_llamanEnviar() {
-        GestorNotificaciones gn = spy(new GestorNotificaciones());
-
-       
+        GestorNotificaciones gn = spy(new GestorNotificaciones(notificacionDAO));
         doNothing().when(gn).enviar(any(Usuario.class), anyString(), anyString());
 
         Propietario prop = propietarioConId(10L);

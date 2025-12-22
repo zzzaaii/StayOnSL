@@ -29,7 +29,7 @@ public class Reserva {
     private Date fechaFin;
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    private boolean pagado = false;
+    private boolean pagado;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -44,7 +44,6 @@ public class Reserva {
     @OneToOne(mappedBy = "reserva", cascade = CascadeType.ALL)
     private Pago pago;
 
-    
     @Column(nullable = false)
     private Double precioPorNocheAplicado = 0.0;
 
@@ -52,12 +51,16 @@ public class Reserva {
     private PoliticaCancelacion politicaCancelacionAplicada;
 
     @Column(nullable = false)
-    private Boolean reservaDirectaAplicada = false;
+    private boolean reservaDirectaAplicada;
 
     @Column(nullable = false)
     private Double precioTotal = 0.0;
 
-   
+    // ✅ NUEVO: ocultar reserva solo en la lista del inquilino (sin borrar en BD)
+    @Column(nullable = false)
+    private boolean ocultaParaInquilino = false;
+
+    // ---------------- Getters / Setters ----------------
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -88,14 +91,24 @@ public class Reserva {
         this.precioPorNocheAplicado = (precioPorNocheAplicado != null) ? precioPorNocheAplicado : 0.0;
     }
 
-    public PoliticaCancelacion getPoliticaCancelacionAplicada() { return politicaCancelacionAplicada; }
+    public PoliticaCancelacion getPoliticaCancelacionAplicada() {
+        return politicaCancelacionAplicada;
+    }
+
     public void setPoliticaCancelacionAplicada(PoliticaCancelacion politicaCancelacionAplicada) {
         this.politicaCancelacionAplicada = politicaCancelacionAplicada;
     }
 
-    public Boolean getReservaDirectaAplicada() { return reservaDirectaAplicada; }
-    public void setReservaDirectaAplicada(Boolean reservaDirectaAplicada) {
-        this.reservaDirectaAplicada = (reservaDirectaAplicada != null) ? reservaDirectaAplicada : false;
+    public boolean getReservaDirectaAplicada() {
+        return reservaDirectaAplicada;
+    }
+
+    public boolean isReservaDirectaAplicada() {
+        return getReservaDirectaAplicada();
+    }
+
+    public void setReservaDirectaAplicada(boolean reservaDirectaAplicada) {
+        this.reservaDirectaAplicada = reservaDirectaAplicada;
     }
 
     public Double getPrecioTotal() { return precioTotal; }
@@ -103,7 +116,9 @@ public class Reserva {
         this.precioTotal = (precioTotal != null) ? precioTotal : 0.0;
     }
 
- 
+    // ✅ NUEVO getters/setters
+    public boolean isOcultaParaInquilino() { return ocultaParaInquilino; }
+    public void setOcultaParaInquilino(boolean ocultaParaInquilino) { this.ocultaParaInquilino = ocultaParaInquilino; }
 
     public boolean isActiva() {
         Date hoy = new Date();
@@ -116,17 +131,23 @@ public class Reserva {
 
     @Transient
     public long getNoches() {
-        if (fechaInicio == null || fechaFin == null) return 0;
+        if (fechaInicio == null || fechaFin == null) {
+            return 0;
+        }
 
         java.time.LocalDate inicio;
         java.time.LocalDate fin;
 
-        if (fechaInicio instanceof java.sql.Date && fechaFin instanceof java.sql.Date) {
-            inicio = ((java.sql.Date) fechaInicio).toLocalDate();
-            fin = ((java.sql.Date) fechaFin).toLocalDate();
+        if (fechaInicio instanceof java.sql.Date sqlInicio && fechaFin instanceof java.sql.Date sqlFin) {
+            inicio = sqlInicio.toLocalDate();
+            fin = sqlFin.toLocalDate();
         } else {
-            inicio = fechaInicio.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
-            fin = fechaFin.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+            inicio = fechaInicio.toInstant()
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDate();
+            fin = fechaFin.toInstant()
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDate();
         }
 
         long noches = java.time.temporal.ChronoUnit.DAYS.between(inicio, fin);
