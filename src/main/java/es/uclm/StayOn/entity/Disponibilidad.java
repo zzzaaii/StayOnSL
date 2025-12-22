@@ -21,18 +21,19 @@ public class Disponibilidad {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date fechaFin;
 
-    // ⚠️ Este precio no se mostrará al propietario, solo se usará internamente
+    // Este precio no se mostrará al propietario, solo se usará internamente
     private Double precio;
 
     private boolean directa; // Reserva inmediata
+
+    @Enumerated(EnumType.STRING)
+    private PoliticaCancelacion politicaCancelacion = PoliticaCancelacion.NO_REEMBOLSABLE;
 
     @ManyToOne
     @JoinColumn(name = "inmueble_id")
     private Inmueble inmueble;
 
-    public Disponibilidad() {}
-
-    // ======= Getters y Setters =======
+    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -51,24 +52,26 @@ public class Disponibilidad {
     public Inmueble getInmueble() { return inmueble; }
     public void setInmueble(Inmueble inmueble) { this.inmueble = inmueble; }
 
-    // ======= Nuevo método auxiliar =======
+    public PoliticaCancelacion getPoliticaCancelacion() { return politicaCancelacion; }
+    public void setPoliticaCancelacion(PoliticaCancelacion politicaCancelacion) {
+        this.politicaCancelacion = politicaCancelacion;
+    }
+
     @Transient
     public Double getPrecioTotal() {
         if (fechaInicio == null || fechaFin == null || inmueble == null) {
             return null;
         }
 
-        // Calculamos número de noches entre las fechas
         long noches = ChronoUnit.DAYS.between(
-            fechaInicio.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
-            fechaFin.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                fechaInicio.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
+                fechaFin.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
         );
 
-        // Evita valores negativos
-        if (noches < 1) noches = 1;
+        if (noches < 1) {
+            noches = 1;
+        }
 
-        // Multiplicamos por el precio por noche del inmueble
         return inmueble.getPrecioPorNoche() * noches;
     }
 }
-

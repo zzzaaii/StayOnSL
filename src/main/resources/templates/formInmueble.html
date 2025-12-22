@@ -24,15 +24,8 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.15);
         }
 
-        header h1 {
-            font-size: 2rem;
-            margin: 0.2rem 0;
-        }
-
-        header p {
-            margin: 0.2rem 0 0.8rem 0;
-            font-size: 1.1rem;
-        }
+        header h1 { font-size: 2rem; margin: 0.2rem 0; }
+        header p { margin: 0.2rem 0 0.8rem 0; font-size: 1.1rem; }
 
         header a {
             text-decoration: none;
@@ -42,10 +35,7 @@
             border-radius: 8px;
             transition: 0.3s;
         }
-
-        header a:hover {
-            background-color: #0b2542;
-        }
+        header a:hover { background-color: #0b2542; }
 
         main {
             max-width: 700px;
@@ -77,10 +67,7 @@
             font-size: 1rem;
         }
 
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
+        textarea { resize: vertical; min-height: 80px; }
 
         button {
             margin-top: 1rem;
@@ -93,9 +80,16 @@
             transition: 0.3s;
             cursor: pointer;
         }
+        button:hover { background-color: #2e5c8a; }
 
-        button:hover {
-            background-color: #2e5c8a;
+        .error-box{
+            margin-bottom: 1rem;
+            padding: 12px;
+            border-radius: 10px;
+            background:#fff3f3;
+            border:1px solid #f5c2c7;
+            color:#c9302c;
+            font-weight:bold;
         }
     </style>
 </head>
@@ -110,8 +104,11 @@
 <main>
     <h2 th:text="${inmueble.id != null} ? 'Editar Inmueble' : 'Nuevo Inmueble'"></h2>
 
+    <div class="error-box" th:if="${error}">
+        <span th:text="${error}"></span>
+    </div>
+
     <form th:action="@{/gestionInmuebles/guardar}" th:object="${inmueble}" method="post">
-        <!-- ID oculto para editar -->
         <input type="hidden" th:field="*{id}" />
 
         <div>
@@ -160,6 +157,25 @@
         <div>
             <label>Reserva directa:</label>
             <input type="checkbox" th:field="*{disponibilidad.directa}" />
+        </div>
+
+        <div>
+            <label>Política de cancelación:</label>
+            <select th:field="*{disponibilidad.politicaCancelacion}">
+                <option value="">-- Selecciona una política --</option>
+
+                <option th:value="${T(es.uclm.StayOn.entity.PoliticaCancelacion).NO_REEMBOLSABLE}">
+                    No reembolsable
+                </option>
+
+                <option th:value="${T(es.uclm.StayOn.entity.PoliticaCancelacion).REEMBOLSABLE_50_PER}">
+                    Reembolsable 50%
+                </option>
+
+                <option th:value="${T(es.uclm.StayOn.entity.PoliticaCancelacion).REEMBOLSABLE_100_PER}">
+                    Reembolsable 100%
+                </option>
+            </select>
         </div>
 
         <button type="submit">Guardar</button>

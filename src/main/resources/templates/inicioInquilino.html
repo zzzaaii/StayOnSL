@@ -20,41 +20,43 @@
     </style>
 </head>
 <body>
-    <!-- BANNER -->
-    <header>
-        <div class="banner-contenido">
-            <h1>🏠 StayOn</h1>
-            <p>Bienvenido, inquilino</p>
-            <div class="botones-banner">
-                <a th:href="@{/logout}">Cerrar sesión</a>
-            </div>
+
+<!-- BANNER -->
+<header>
+    <div class="banner-contenido">
+        <h1>🏠 StayOn</h1>
+        <p>Bienvenido, inquilino</p>
+        <div class="botones-banner">
+            <a th:href="@{/logout}">Cerrar sesión</a>
         </div>
-    </header>
+    </div>
+</header>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <main>
-        <h2>Gestión de Inquilino</h2>
-        <p>Explora inmuebles, realiza reservas y gestiona tu perfil de manera segura y rápida.</p>
+<!-- CONTENIDO PRINCIPAL -->
+<main>
+    <h2>Gestión de Inquilino</h2>
+    <p>Explora inmuebles, realiza reservas y gestiona tus deseos y notificaciones.</p>
 
-        <div class="acciones">
-            <a th:href="@{/buscarInmuebles}">Buscar Inmuebles</a>
-            <a th:href="@{/misReservas}">Mis Reservas</a>
-            <a th:href="@{/perfil}">Mi Perfil</a>
-			<a th:href="@{/notificaciones}" id="notifButton">
-			    Notificaciones
-			    <span id="notifBadge" class="badge" style="display:none">0</span>
-			</a>
+    <div class="acciones">
+        <a th:href="@{/buscarInmuebles}">Buscar Inmuebles</a>
+        <a th:href="@{/misReservas}">Mis Reservas</a>
+        <a th:href="@{/misDeseos}">❤️ Mis Deseos</a>
 
-            <a th:href="@{/pagos}">Pagos</a>
-        </div>
-    </main>
+        <a th:href="@{/notificaciones}" id="notifButton">
+            Notificaciones
+            <span id="notifBadge" class="badge" style="display:none">0</span>
+        </a>
 
-    <footer>
-        <p>&copy; 2025 StayOn. Todos los derechos reservados.</p>
-    </footer>
-	<!-- 🔔 Pop-up y contador -->
-	<div th:insert="notificacionesFragment"></div>
+        <a th:href="@{/pagos}">Pagos</a>
+    </div>
+</main>
+
+<footer>
+    <p>&copy; 2025 StayOn. Todos los derechos reservados.</p>
+</footer>
+
+<!--  Pop-up y contador -->
+<div th:insert="notificacionesFragment"></div>
 
 </body>
 </html>
-

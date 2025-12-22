@@ -41,41 +41,40 @@
     </style>
 </head>
 <body>
-    <!-- BANNER -->
-    <header>
-        <div class="banner-contenido">
-            <h1>🏠 StayOn</h1>
-            <p>Bienvenido, propietario</p>
-            <div class="botones-banner">
-                <a th:href="@{/logout}">Cerrar sesión</a>
-            </div>
+
+<!-- BANNER -->
+<header>
+    <div class="banner-contenido">
+        <h1>🏠 StayOn</h1>
+        <p>Bienvenido, propietario</p>
+        <div class="botones-banner">
+            <a th:href="@{/logout}">Cerrar sesión</a>
         </div>
-    </header>
+    </div>
+</header>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <main>
-        <h2>Gestión de Propietario</h2>
-        <p>Administra tus inmuebles, gestiona reservas y controla tus políticas de cancelación.</p>
+<!-- CONTENIDO PRINCIPAL -->
+<main>
+    <h2>Gestión de Propietario</h2>
+    <p>Administra tus inmuebles y gestiona las reservas recibidas.</p>
 
-        <div class="acciones">
-            <a th:href="@{/gestionInmuebles}">Gestión de Inmuebles</a>
-			<a th:href="@{/misReservas/propietario}">Ver Reservas</a>
+    <div class="acciones">
+        <a th:href="@{/gestionInmuebles}">Gestión de Inmuebles</a>
+        <a th:href="@{/misReservas/propietario}">Ver Reservas</a>
 
-            <a th:href="@{/politicas}">Políticas de Cancelación</a>
-            <a th:href="@{/perfil}">Mi Perfil</a>
-			<a th:href="@{/notificaciones}" id="notifButton">
-			    Notificaciones
-			    <span id="notifBadge" class="badge" style="display:none">0</span>
-			</a>
+        <a th:href="@{/notificaciones}" id="notifButton">
+            Notificaciones
+            <span id="notifBadge" class="badge" style="display:none">0</span>
+        </a>
+    </div>
+</main>
 
-        </div>
-    </main>
+<footer>
+    <p>&copy; 2025 StayOn. Todos los derechos reservados.</p>
+</footer>
 
-    <footer>
-        <p>&copy; 2025 StayOn. Todos los derechos reservados.</p>
-    </footer>
-	<!-- 🔔 Pop-up y contador -->
-	<div th:insert="notificacionesFragment"></div>
+<!--  Pop-up y contador -->
+<div th:insert="notificacionesFragment"></div>
 
 </body>
 </html>
